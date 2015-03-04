@@ -12,12 +12,12 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.util.regex.Pattern;
 
+import edu.stevens.cs522.chatapp.singleprocess.Activity.ChatAppActivity;
 import edu.stevens.cs522.chatapp.singleprocess.Contracts.MessageContract;
 import edu.stevens.cs522.chatapp.singleprocess.Entities.Message;
 import edu.stevens.cs522.chatapp.singleprocess.Entities.Peer;
 import edu.stevens.cs522.chatapp.singleprocess.IEntityCreator;
 import edu.stevens.cs522.chatapp.singleprocess.Managers.MessageManager;
-import edu.stevens.cs522.chatapp.singleprocess.R;
 
 /**
  * An {@link IntentService} subclass for handling asynchronous task requests in
@@ -52,7 +52,7 @@ public class ChatReceiverService extends Service {
         // TODO: Handle action Foo
         if (serverSocket == null) {
             try {
-                int port = Integer.parseInt(this.getString(R.string.app_port));
+                int port = ChatAppActivity.clientPort;
                 serverSocket = new DatagramSocket(port);
             } catch (Exception e) {
                 Log.e(TAG, "Cannot open socket" + e.getMessage());

@@ -30,16 +30,15 @@ import edu.stevens.cs522.chatapp.singleprocess.R;
 import edu.stevens.cs522.chatapp.singleprocess.Service.ChatReceiverService;
 import edu.stevens.cs522.chatapp.singleprocess.Service.ChatSenderService;
 
-
 public class ChatAppActivity extends ActionBarActivity {
     private static final String TAG = ChatAppActivity.class.getCanonicalName();
     private static final int CHAT_SERVER_LOADER_ID = 1;
     private static final String CLIENT_NAME_KEY = "client_name";
     private static final String DEFAULT_CLIENT_NAME = "client";
-    private String clientName;
+    public static String clientName;
     public static final String CLIENT_PORT_KEY = "client_port";
     public static final int DEFAULT_CLIENT_PORT = 6666;
-    private int clientPort;
+    public static int clientPort;
     Intent intentReceiver = null;
     private MessageManager manager = null;
     private SimpleCursorAdapter cursorAdapter = null;
@@ -51,7 +50,7 @@ public class ChatAppActivity extends ActionBarActivity {
     private Button sendButton;
     public static final int REQUEST_USER = 1;
     private ChatSenderService service;
-    IntentFilter filter = new IntentFilter(Intent.ACTION_PROVIDER_CHANGED); // TODO
+    IntentFilter filter = new IntentFilter(Intent.ACTION_PROVIDER_CHANGED);
     Receiver receiver;
 
     private ServiceConnection connection = new ServiceConnection() {
@@ -140,11 +139,20 @@ public class ChatAppActivity extends ActionBarActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.menu_preference) {
+            Intent intent = new Intent(this, PreferenceActivity.class);
+            startActivityForResult(intent, REQUEST_USER);
             return true;
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == REQUEST_USER && resultCode == RESULT_OK) {
+            clientName = data.getStringExtra(PreferenceActivity.USER_KEY);
+        }
     }
 
     public class Receiver extends BroadcastReceiver {

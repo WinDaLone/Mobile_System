@@ -24,7 +24,8 @@
             android:enabled="true"
             android:exported="false" >
         </service>
-        <receiver android:name=".Activity.ChatAppActivity$Receiver">
+
+        <receiver android:name=".Activity.ChatAppActivity$Receiver" >
             <intent-filter>
                 <action android:name="android.intent.action.PROVIDER_CHANGED" />
             </intent-filter>
@@ -42,6 +43,31 @@
             android:enabled="true"
             android:exported="false" >
         </service>
+
+        <activity
+            android:name=".Activity.PeerActivity"
+            android:label="@string/title_activity_peer"
+            android:parentActivityName=".Activity.ChatAppActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="edu.stevens.cs522.chatapp.singleprocess.Activity.ChatAppActivity" />
+        </activity>
+        <activity
+            android:name=".Activity.PeerDetailActivity"
+            android:label="@string/title_activity_peer_detail"
+            android:parentActivityName=".Activity.PeerActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="edu.stevens.cs522.chatapp.singleprocess.Activity.PeerActivity" />
+        </activity>
+        <activity
+            android:name=".Activity.PreferenceActivity"
+            android:label="@string/title_activity_preference"
+            android:parentActivityName=".Activity.ChatAppActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="edu.stevens.cs522.chatapp.singleprocess.Activity.ChatAppActivity" />
+        </activity>
     </application>
 
 </manifest>
