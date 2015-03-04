@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/menu_preference" android:title="@string/action_settings"
+        android:showAsAction="ifRoom" />
+</menu><!-- From: file:/Users/wyf920621/Documents/Mobile_System/Assignment2-Code/Chat-Client-Oneway/app/src/main/res/menu/chat_menu.xml -->

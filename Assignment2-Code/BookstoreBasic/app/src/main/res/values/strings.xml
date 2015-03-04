@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Yunfeng Wei\'s Book Store With Entity Manager</string>
+    <string name="add">Add</string>
+    <string name="checkout">Checkout</string>
+    <string name="delete">Delete</string>
+    <string name="search">Search</string>
+    <string name="cancel">Cancel</string>
+    <string name="order">Order</string>
+    <string name="detail">Detail</string>
+    <string name="empty_cart">THE CART IS EMPTY!</string>
+    <string name="title_activity_book_detail">Yunfeng Wei\'s Book Store With Entity Manger</string>
+    <string name="action_settings">Settings</string>
+
+</resources>

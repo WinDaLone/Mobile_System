@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="30sp"
+        android:id="@+id/peer_list"/>
+</LinearLayout><!-- From: file:/Users/wyf920621/Documents/Mobile_System/Assignment2-Code/Chat-Server-Oneway/app/src/main/res/layout/peer_list.xml -->

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:title="@string/order"
+        android:id="@+id/checkout_order"
+        android:showAsAction="ifRoom" />
+    <item android:id="@+id/checkout_cancel"
+        android:title="@string/cancel"
+        android:showAsAction="ifRoom" />
+</menu><!-- From: file:/Users/wyf920621/Documents/Mobile_System/Assignment2-Code/BookstoreBasic/app/src/main/res/menu/checkout_menu.xml -->
