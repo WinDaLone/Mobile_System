@@ -35,6 +35,11 @@ public class ChatSenderService extends Service {
         return binder;
     }
 
+    @Override
+    public void onCreate() {
+        super.onCreate();
+    }
+
     public class IChatSendService extends Binder {
         public ChatSenderService getService() {
             return ChatSenderService.this;
@@ -63,7 +68,6 @@ public class ChatSenderService extends Service {
         } catch (IOException e) {
             Log.e(TAG, e.getMessage());
         }
-        stopSelf();
     }
 
 

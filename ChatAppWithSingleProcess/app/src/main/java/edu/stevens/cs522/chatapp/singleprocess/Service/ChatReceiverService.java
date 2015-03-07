@@ -7,6 +7,7 @@ import android.database.Cursor;
 import android.os.IBinder;
 import android.util.Log;
 
+import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -86,7 +87,7 @@ public class ChatReceiverService extends Service {
                     Intent broadcastIntent = new Intent(Intent.ACTION_PROVIDER_CHANGED);
                     sendBroadcast(broadcastIntent); // send the broadcast
                 }
-            } catch (Exception e) {
+            } catch (IOException e) {
                 Log.e(TAG, e.getMessage());
                 socketOK = false;
             }
