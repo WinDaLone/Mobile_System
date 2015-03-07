@@ -3,4 +3,5 @@
     xmlns:tools="http://schemas.android.com/tools" tools:context=".ChatAppActivity">
     <item android:id="@+id/menu_preference" android:title="@string/action_settings"
         app:showAsAction="ifRoom" />
+    <item android:id="@+id/peers" app:showAsAction="ifRoom" android:title="@string/menu_show_peers" />
 </menu>

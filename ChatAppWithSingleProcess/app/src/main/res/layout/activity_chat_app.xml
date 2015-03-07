@@ -69,7 +69,7 @@
             android:layout_weight="0.3"
             android:text="@string/send_label"
             android:textAppearance="?android:attr/textAppearanceMedium"
-            />
+            android:onClick="onClick" />
 
     </LinearLayout>
 

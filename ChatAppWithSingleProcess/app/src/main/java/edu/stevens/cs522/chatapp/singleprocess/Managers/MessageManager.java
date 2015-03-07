@@ -4,6 +4,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
+import android.util.Log;
 
 import edu.stevens.cs522.chatapp.singleprocess.Contracts.MessageContract;
 import edu.stevens.cs522.chatapp.singleprocess.Contracts.PeerContract;
@@ -37,6 +38,7 @@ public class MessageManager extends Manager<Message> {
                     getAsyncResolver().insertAsync(MessageContract.CONTENT_URI, values, new IContinue<Uri>() {
                         public void kontinue(Uri value) {
                             message.id = MessageContract.getId(value);
+                            Log.v("GET Message ID: ", String.valueOf(message.id));
                         }
                     });
                 }
@@ -44,11 +46,13 @@ public class MessageManager extends Manager<Message> {
                     getAsyncResolver().insertAsync(PeerContract.CONTENT_URI, values, new IContinue<Uri>() {
                         public void kontinue(Uri value) {
                             peer.id = PeerContract.getId(value);
+                            Log.v("Get Peer ID: ", String.valueOf(peer.id));
                             values.clear();
                             message.writeToProvider(values, peer.id);
                             getAsyncResolver().insertAsync(MessageContract.CONTENT_URI, values, new IContinue<Uri>() {
                                 public void kontinue(Uri value) {
                                     message.id = MessageContract.getId(value);
+                                    Log.v("GET Message ID: ", String.valueOf(message.id));
                                 }
                             });
                         }

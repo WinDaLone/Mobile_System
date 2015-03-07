@@ -13,7 +13,6 @@ import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
@@ -47,9 +46,10 @@ public class ChatAppActivity extends ActionBarActivity {
     private EditText destinationHost;
     private EditText destinationPort;
     private EditText messageText;
-    private Button sendButton;
+    private Intent sendIntent;
     public static final int REQUEST_USER = 1;
     private ChatSenderService service;
+    private boolean serviceBound;
     IntentFilter filter = new IntentFilter(Intent.ACTION_PROVIDER_CHANGED);
     Receiver receiver;
 
@@ -57,15 +57,12 @@ public class ChatAppActivity extends ActionBarActivity {
         @Override
         public void onServiceConnected(ComponentName name, IBinder binder) {
             service = ((ChatSenderService.IChatSendService)binder).getService();
-            String destination = destinationHost.getText().toString();
-            int port = Integer.parseInt(destinationPort.getText().toString());
-            String message = messageText.getText().toString();
-            service.send(destination, port, clientName, message);
+            serviceBound = true;
         }
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
-            service = null;
+            serviceBound = false;
         }
     };
 
@@ -84,7 +81,6 @@ public class ChatAppActivity extends ActionBarActivity {
         destinationHost = (EditText)findViewById(R.id.destination_host);
         destinationPort = (EditText)findViewById(R.id.destination_port);
         messageText = (EditText)findViewById(R.id.message_text);
-        sendButton = (Button)findViewById(R.id.send_button);
         messageList = (ListView)findViewById(R.id.message_list);
         manager = new MessageManager(this, new IEntityCreator<Message>() {
             @Override
@@ -101,7 +97,7 @@ public class ChatAppActivity extends ActionBarActivity {
             @Override
             public void handleResults(TypedCursor<Message> cursor) {
                 cursorAdapter.swapCursor(cursor.getCursor());
-                cursor.getCursor().setNotificationUri(getContentResolver(), MessageContract.CONTENT_URI);
+                //cursor.getCursor().setNotificationUri(getContentResolver(), MessageContract.CONTENT_URI);
             }
 
             @Override
@@ -110,18 +106,26 @@ public class ChatAppActivity extends ActionBarActivity {
             }
         });
         registerReceiver(receiver, filter);
-
+        // TODO: start receiver service
         intentReceiver = new Intent(this, ChatReceiverService.class);
         startService(intentReceiver);
-        sendButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent sendIntent = new Intent(ChatAppActivity.this, ChatSenderService.class);
-                bindService(sendIntent, connection, Context.BIND_AUTO_CREATE);
-            }
-        });
     }
 
+    @Override
+    protected void onStart() {
+        // TODO: bind sender service
+        sendIntent = new Intent(ChatAppActivity.this, ChatSenderService.class);
+        bindService(sendIntent, connection, Context.BIND_AUTO_CREATE);
+        super.onStart();
+    }
+
+    public void onClick(View view) {
+        String destination = destinationHost.getText().toString();
+        int port = Integer.parseInt(destinationPort.getText().toString());
+        String message = messageText.getText().toString();
+        service.send(destination, port, clientName, message);
+        messageText.setText("");
+    }
 
 
     @Override
@@ -137,14 +141,17 @@ public class ChatAppActivity extends ActionBarActivity {
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.menu_preference) {
-            Intent intent = new Intent(this, PreferenceActivity.class);
-            startActivityForResult(intent, REQUEST_USER);
-            return true;
+        Intent intent;
+        switch (id) {
+            case R.id.menu_preference:
+                intent = new Intent(this, PreferenceActivity.class);
+                startActivityForResult(intent, REQUEST_USER);
+                return true;
+            case R.id.peers:
+                intent = new Intent(this, PeerActivity.class);
+                startActivity(intent);
+                return true;
         }
-
         return super.onOptionsItemSelected(item);
     }
 
@@ -155,16 +162,11 @@ public class ChatAppActivity extends ActionBarActivity {
         }
     }
 
-    public class Receiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            Toast.makeText(ChatAppActivity.this, "A message has received", Toast.LENGTH_LONG).show();
-        }
-    }
-
     @Override
     protected void onStop() {
-        unregisterReceiver(receiver);
+        if (serviceBound) {
+            unbindService(connection);
+        }
         super.onStop();
     }
 
@@ -174,5 +176,13 @@ public class ChatAppActivity extends ActionBarActivity {
             stopService(intentReceiver);
         }
         super.onDestroy();
+    }
+
+    public static class Receiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Toast.makeText(context, "A message has received", Toast.LENGTH_LONG).show();
+            context.getContentResolver().notifyChange(MessageContract.CONTENT_URI, null);
+        }
     }
 }

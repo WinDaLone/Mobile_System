@@ -67,13 +67,18 @@ public class ChatDbProvider extends ContentProvider {
     public int delete(Uri uri, String selection, String[] selectionArgs) {
         SQLiteDatabase database = databaseHelper.getWritableDatabase();
         databaseHelper.getWritableDatabase().execSQL("PRAGMA foreign_keys = ON");
+        int rowId;
         switch (uriMatcher.match(uri)) {
             case MESSAGE_ALL_ROWS:
-                return database.delete(MessageContract.TABLE_NAME, null, null);
+                rowId = database.delete(MessageContract.TABLE_NAME, null, null);
+                getContext().getContentResolver().notifyChange(MessageContract.CONTENT_URI, null);
+                return rowId;
             case MESSAGE_SINGLE_ROW:
                 selection = MessageContract.ID + "=?";
                 selectionArgs = new String[] {String.valueOf(MessageContract.getId(uri))};
-                return database.delete(MessageContract.TABLE_NAME, selection, selectionArgs);
+                rowId = database.delete(MessageContract.TABLE_NAME, selection, selectionArgs);
+                getContext().getContentResolver().notifyChange(MessageContract.CONTENT_URI, null);
+                return rowId;
             default:
                 throw new IllegalArgumentException("Unsupported URI: " + uri);
         }
@@ -141,17 +146,22 @@ public class ChatDbProvider extends ContentProvider {
             database = databaseHelper.getReadableDatabase();
         }
         database.execSQL("PRAGMA foreign_keys = ON");
+        Cursor cursor;
         switch (uriMatcher.match(uri)) {
             case MESSAGE_ALL_ROWS:
                 String query = "SELECT " + MessageContract.TABLE_NAME + "." + MessageContract.ID + " AS " + MessageContract.ID + ", " + PeerContract.TABLE_NAME + "." + PeerContract.NAME + " AS " + PeerContract.NAME + ", " +
                         MessageContract.TABLE_NAME + "." + MessageContract.MESSAGE_TEXT + " AS " + MessageContract.MESSAGE_TEXT + " FROM " + PeerContract.TABLE_NAME + " LEFT JOIN " + MessageContract.TABLE_NAME + " ON " + PeerContract.TABLE_NAME + "." + PeerContract.ID + "=" + MessageContract.TABLE_NAME +
                         "." + MessageContract.PEER_FK + ";";
-                return database.rawQuery(query, null);
+                cursor = database.rawQuery(query, null);
+                cursor.setNotificationUri(getContext().getContentResolver(), uri);
+                return cursor;
             case MESSAGE_SINGLE_ROW:
                 return database.query(MessageContract.TABLE_NAME, projection, selection, selectionArgs, null, null, sortOrder);
             case PEER_ALL_ROWS:
                 projection = new String[] {PeerContract.ID, PeerContract.NAME, PeerContract.ADDRESS, PeerContract.PORT};
-                return database.query(PeerContract.TABLE_NAME, projection, null, null, null, null, null, null);
+                cursor = database.query(PeerContract.TABLE_NAME, projection, null, null, null, null, null, null);
+                cursor.setNotificationUri(getContext().getContentResolver(), uri);
+                return cursor;
             case PEER_SINGLE_ROW:
                 if (PeerContract.getId(uri) == 0) {
                     return database.query(PeerContract.TABLE_NAME, projection, selection, selectionArgs, null, null, null);
@@ -173,13 +183,18 @@ public class ChatDbProvider extends ContentProvider {
                       String[] selectionArgs) {
         SQLiteDatabase database = databaseHelper.getWritableDatabase();
         database.execSQL("PRAGMA foreign_keys = ON");
+        int rowId;
         switch (uriMatcher.match(uri)) {
             case MESSAGE_ALL_ROWS:
-                return database.update(MessageContract.TABLE_NAME, values, null, null);
+                rowId = database.update(MessageContract.TABLE_NAME, values, null, null);
+                getContext().getContentResolver().notifyChange(MessageContract.CONTENT_URI, null);
+                return rowId;
             case MESSAGE_SINGLE_ROW:
                 selection = MessageContract.ID + "=?";
                 selectionArgs = new String[] {String.valueOf(MessageContract.getId(uri))};
-                return database.update(MessageContract.TABLE_NAME, values, selection, selectionArgs);
+                rowId = database.update(MessageContract.TABLE_NAME, values, selection, selectionArgs);
+                getContext().getContentResolver().notifyChange(MessageContract.CONTENT_URI, null);
+                return rowId;
             default:
                 throw new IllegalArgumentException("Unsupported URI: " + uri);
         }

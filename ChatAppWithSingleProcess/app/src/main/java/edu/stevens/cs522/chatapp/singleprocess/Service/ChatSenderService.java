@@ -27,6 +27,7 @@ public class ChatSenderService extends Service {
     private boolean socketOK = true;
 
     private static final String SEPARATE_CHAR = "|";
+    private static final int DEFAULT_SENDER_PORT = 6667;
 
     private final IBinder binder = new IChatSendService();
 
@@ -37,6 +38,7 @@ public class ChatSenderService extends Service {
 
     @Override
     public void onCreate() {
+
         super.onCreate();
     }
 
@@ -46,28 +48,33 @@ public class ChatSenderService extends Service {
         }
     }
 
-    public void send(String dest, int port, String source, String message) {
-        if (clientSocket == null) {
-            try {
-                clientSocket = new DatagramSocket(port);
-            } catch (Exception e) {
-                Log.e(TAG, "Cannot open socket: " + e.getMessage());
-                socketOK = false;
-                return;
+    public void send(final String dest, final int port, final String source, final String message) {
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                if (clientSocket == null) {
+                    try {
+                        clientSocket = new DatagramSocket(DEFAULT_SENDER_PORT);
+                    } catch (Exception e) {
+                        Log.e(TAG, "Cannot open socket: " + e.getMessage());
+                        socketOK = false;
+                        return;
+                    }
+                }
+                // TODO: Handle action send
+                try {
+                    InetAddress destAddr = InetAddress.getByName(dest);
+                    String toSend = source + SEPARATE_CHAR + message;
+                    byte[] sendData = toSend.getBytes(Charset.forName("UTF-8"));
+                    DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, destAddr, port);
+                    clientSocket.send(sendPacket);
+                    Log.i(TAG, "Send packet: " + message);
+                } catch (IOException e) {
+                    Log.e(TAG, e.getMessage());
+                }
             }
-        }
-        // TODO: Handle action send
-        try {
-            InetAddress destAddr = InetAddress.getByName(dest);
-            String toSend = source + SEPARATE_CHAR + message;
-            byte[] sendData = toSend.getBytes(Charset.forName("UTF-8"));
-            DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, destAddr, port);
-            clientSocket.send(sendPacket);
-
-            Log.i(TAG, "Send packet: " + message);
-        } catch (IOException e) {
-            Log.e(TAG, e.getMessage());
-        }
+        });
+        thread.start();
     }
 
 

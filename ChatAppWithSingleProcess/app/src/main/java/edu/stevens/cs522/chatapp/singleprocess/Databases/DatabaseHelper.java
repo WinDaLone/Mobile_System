@@ -36,7 +36,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase sqLiteDatabase) {
         sqLiteDatabase.execSQL("PRAGMA foreign_keys = ON");
-        Log.v("Create: ", PEER_TABLE_CREATE);
         sqLiteDatabase.execSQL(PEER_TABLE_CREATE);
         sqLiteDatabase.execSQL(MESSAGE_TABLE_CREATE);
         sqLiteDatabase.execSQL(CREATE_INDEX);
