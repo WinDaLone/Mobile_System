@@ -178,7 +178,7 @@ public class ChatAppActivity extends ActionBarActivity {
     public static class Receiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
-            Toast.makeText(context, "A message has received", Toast.LENGTH_LONG).show();
+            Toast.makeText(context, "A message has been received", Toast.LENGTH_LONG).show();
             context.getContentResolver().notifyChange(MessageContract.CONTENT_URI, null);
         }
     }

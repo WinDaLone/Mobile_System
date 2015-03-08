@@ -19,7 +19,7 @@ import edu.stevens.cs522.chatapp.singleprocess.R;
 
 public class PeerActivity extends ListActivity {
     public static final int PEER_ACTIVITY_LOADER_ID = 2;
-    public static final String PEER_ACTIVITY_KEY = "edu.stevens.cs522.chat.oneway.server.PeerActivity";
+    public static final String PEER_ACTIVITY_KEY = "edu.stevens.cs522.chatapp.singleprocess.PeerActivity";
     SimpleCursorAdapter cursorAdapter;
     PeerManager manager = null;
     ListView listView;

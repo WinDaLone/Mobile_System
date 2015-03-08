@@ -17,9 +17,9 @@ import edu.stevens.cs522.chatapp.singleprocess.Managers.TypedCursor;
  * Created by wyf920621 on 3/3/15.
  */
 public class QueryBuilder<T> implements LoaderManager.LoaderCallbacks<Cursor> {
-    public static final String PROJECTION = "edu.stevens.cs522.chat.oneway.server.PROJECTION";
-    public static final String SELECTION = "edu.stevens.cs522.chat.oneway.server.SELECTION";
-    public static final String SELECTIONARGS = "edu.stevens.cs522.chat.oneway.server.SELECTIONARGS";
+    public static final String PROJECTION = "edu.stevens.cs522.chatapp.singleprocess.PROJECTION";
+    public static final String SELECTION = "edu.stevens.cs522.chatapp.singleprocess.SELECTION";
+    public static final String SELECTIONARGS = "edu.stevens.cs522.chatapp.singleprocess.SELECTIONARGS";
     private final String tag;
     private final Context context;
     private final Uri uri;

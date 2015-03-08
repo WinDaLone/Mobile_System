@@ -21,7 +21,6 @@
 
         <service
             android:name=".Service.ChatReceiverService"
-            android:enabled="true"
             android:exported="false" >
         </service>
 

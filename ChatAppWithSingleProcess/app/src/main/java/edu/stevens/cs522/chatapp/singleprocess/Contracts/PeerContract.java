@@ -20,9 +20,7 @@ public class PeerContract {
     public static final String PORT = "port";
     public static final String TABLE_NAME = "Peers";
     public static final String CONTENT = "Peer";
-    // edu.stevens.cs522.chat.oneway.server/Peers
     public static final Uri CONTENT_URI = ChatDbProvider.CONTENT_URI(ChatDbProvider.AUTHORITY, TABLE_NAME);
-
 
     public static Uri CONTENT_URI(String id) {
         return ChatDbProvider.withExtendedPath(CONTENT_URI, id);
