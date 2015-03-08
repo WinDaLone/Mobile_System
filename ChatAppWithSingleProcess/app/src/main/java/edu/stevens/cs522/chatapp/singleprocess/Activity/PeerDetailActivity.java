@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.CursorAdapter;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
@@ -50,7 +49,6 @@ public class PeerDetailActivity extends Activity {
         cursorAdapter = new SimpleCursorAdapter(this, R.layout.peer_message, null, from, to, CursorAdapter.FLAG_REGISTER_CONTENT_OBSERVER);
         listView = (ListView) findViewById(R.id.peer_messages);
         listView.setAdapter(cursorAdapter);
-        Log.v("Peer detail id: ", String.valueOf(peer.id));
         messageManager.QueryAsync(PeerContract.CONTENT_URI(String.valueOf(peer.id)), new IQueryListener<Message>() {
             public void handleResults(TypedCursor<Message> cursor) {
                 cursorAdapter.swapCursor(cursor.getCursor());

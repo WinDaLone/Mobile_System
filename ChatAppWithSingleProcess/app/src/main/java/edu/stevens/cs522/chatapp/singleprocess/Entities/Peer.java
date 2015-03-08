@@ -36,7 +36,7 @@ public class Peer implements Parcelable {
     public void writeToParcel(Parcel parcel, int i) {
         parcel.writeLong(id);
         parcel.writeString(name);
-        parcel.writeString(address.getHostName());
+        parcel.writeString(address.getHostAddress());
         parcel.writeInt(port);
     }
 
@@ -49,9 +49,9 @@ public class Peer implements Parcelable {
     public Peer(Parcel parcel) {
         this.id = parcel.readLong();
         this.name = parcel.readString();
-        String hostName = parcel.readString();
+        String host = parcel.readString();
         try {
-            address = InetAddress.getByName(hostName);
+            address = InetAddress.getByName(host);
         }
         catch (UnknownHostException e) {
             Log.e("Peer", e.getMessage());

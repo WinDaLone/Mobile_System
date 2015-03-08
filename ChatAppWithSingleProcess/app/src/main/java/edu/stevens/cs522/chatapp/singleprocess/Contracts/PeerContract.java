@@ -65,7 +65,7 @@ public class PeerContract {
     }
 
     public static void putAddress(ContentValues values, InetAddress address) {
-        values.put(ADDRESS, address.getHostName());
+        values.put(ADDRESS, address.getHostAddress());
     }
 
     public static int getPort(Cursor cursor) {

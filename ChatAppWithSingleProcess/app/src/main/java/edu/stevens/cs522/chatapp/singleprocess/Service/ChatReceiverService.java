@@ -32,23 +32,25 @@ public class ChatReceiverService extends IntentService {
     private DatagramSocket serverSocket;
     private boolean socketOK = true;
     private MessageManager manager;
-    private boolean loop;
 
     public ChatReceiverService() {
         super("ChatReceiverService");
     }
 
     @Override
+    public void onCreate() {
+        manager = new MessageManager(this, new IEntityCreator<Message>() {
+            @Override
+            public Message create(Cursor cursor) {
+                return new Message(cursor);
+            }
+        }, CHAT_SERVER_LOADER_ID);
+        super.onCreate();
+    }
+
+    @Override
     protected void onHandleIntent(Intent intent) {
         if (intent != null) {
-            if (manager == null) {
-                manager = new MessageManager(this, new IEntityCreator<Message>() {
-                    @Override
-                    public Message create(Cursor cursor) {
-                        return new Message(cursor);
-                    }
-                }, CHAT_SERVER_LOADER_ID);
-            }
             if (serverSocket == null) {
                 try {
                     int port = ChatAppActivity.clientPort;
@@ -58,8 +60,7 @@ public class ChatReceiverService extends IntentService {
                     return;
                 }
             }
-            loop = true;
-            while (loop) {
+            while (serverSocket != null && !serverSocket.isClosed()) {
                 byte[] receiveData = new byte[1024];
                 DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
                 try {
@@ -74,12 +75,17 @@ public class ChatReceiverService extends IntentService {
                         String[] nameAndContent = SEPARATOR.split(temp);
                         Peer peer = new Peer(nameAndContent[0], sourceIPAddress, serverPort);
                         Message message = new Message(nameAndContent[1], nameAndContent[0]);
-                        manager.persistAsync(peer, message);
+                        // Since the IntentService is already run on a Worker Thread, just persist
+                        // data directly
+                        manager.persistSync(peer, message);
                         Intent broadcastIntent = new Intent(Intent.ACTION_PROVIDER_CHANGED);
                         sendBroadcast(broadcastIntent);
                     }
                 } catch (IOException e) {
                     Log.e(TAG, e.getMessage());
+                    if (serverSocket != null && serverSocket.isClosed()) {
+                        serverSocket = null;
+                    }
                     socketOK = false;
                 }
             }

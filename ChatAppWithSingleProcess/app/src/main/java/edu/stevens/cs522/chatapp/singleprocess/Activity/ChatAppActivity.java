@@ -4,7 +4,6 @@ import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.database.Cursor;
 import android.os.Bundle;
@@ -50,8 +49,8 @@ public class ChatAppActivity extends ActionBarActivity {
     public static final int REQUEST_USER = 1;
     private ChatSenderService service;
     private boolean serviceBound;
-    IntentFilter filter = new IntentFilter(Intent.ACTION_PROVIDER_CHANGED);
-    Receiver receiver;
+    //IntentFilter filter = new IntentFilter(Intent.ACTION_PROVIDER_CHANGED);
+    //Receiver receiver;
 
     private ServiceConnection connection = new ServiceConnection() {
         @Override
@@ -105,7 +104,8 @@ public class ChatAppActivity extends ActionBarActivity {
                 cursorAdapter.swapCursor(null);
             }
         });
-        registerReceiver(receiver, filter);
+        //receiver = new Receiver();
+        //registerReceiver(receiver, filter);
         // TODO: start receiver service
         intentReceiver = new Intent(this, ChatReceiverService.class);
         startService(intentReceiver);
@@ -175,6 +175,7 @@ public class ChatAppActivity extends ActionBarActivity {
         if (intentReceiver != null) {
             stopService(intentReceiver);
         }
+        //unregisterReceiver(receiver);
         super.onDestroy();
     }
 

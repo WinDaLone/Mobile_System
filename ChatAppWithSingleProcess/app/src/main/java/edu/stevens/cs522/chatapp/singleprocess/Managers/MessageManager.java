@@ -4,7 +4,6 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
-import android.util.Log;
 
 import edu.stevens.cs522.chatapp.singleprocess.Contracts.MessageContract;
 import edu.stevens.cs522.chatapp.singleprocess.Contracts.PeerContract;
@@ -23,22 +22,46 @@ public class MessageManager extends Manager<Message> {
         super(context, creator, loaderID);
     }
 
+    public void persistSync(Peer peer, Message message) {
+        ContentValues values = new ContentValues();
+        peer.writeToProvider(values);
+        String[] projection = new String[] {PeerContract.ID, PeerContract.NAME, PeerContract.ADDRESS, PeerContract.PORT};
+        String selection = PeerContract.NAME + "=? AND " + PeerContract.ADDRESS + "=? AND " + PeerContract.PORT + "=?";
+        String[] selectionArgs = new String[] {peer.name, peer.address.getHostAddress(), String.valueOf(peer.port)};
+        Cursor cursor = getSyncResolver().query(PeerContract.CONTENT_URI(String.valueOf(peer.id)), projection, selection, selectionArgs, null);
+        if (cursor.moveToFirst()) {
+            peer.id = PeerContract.getId(cursor);
+            values.clear();
+            message.writeToProvider(values, peer.id);
+            Uri uri = getSyncResolver().insert(MessageContract.CONTENT_URI, values);
+            message.id = MessageContract.getId(uri);
+        }
+        else {
+            Uri peerUri = getSyncResolver().insert(PeerContract.CONTENT_URI, values);
+            peer.id = PeerContract.getId(peerUri);
+            values.clear();
+            message.writeToProvider(values, peer.id);
+            Uri messageUri = getSyncResolver().insert(MessageContract.CONTENT_URI, values);
+            message.id = MessageContract.getId(messageUri);
+        }
+        cursor.close();
+    }
+
     public void persistAsync(final Peer peer, final Message message) {
         final ContentValues values = new ContentValues();
         peer.writeToProvider(values);
         String[] projection = new String[] {PeerContract.ID, PeerContract.NAME, PeerContract.ADDRESS, PeerContract.PORT};
         String selection = PeerContract.NAME + "=? AND " + PeerContract.ADDRESS + "=? AND " + PeerContract.PORT + "=?";
-        String[] selectionArgs = new String[] {peer.name, peer.address.getHostName(), String.valueOf(peer.port)};
+        String[] selectionArgs = new String[] {peer.name, peer.address.getHostAddress(), String.valueOf(peer.port)};
         getAsyncResolver().queryAsync(PeerContract.CONTENT_URI(String.valueOf(peer.id)), projection, selection, selectionArgs, null, new IContinue<Cursor>() {
             public void kontinue(Cursor value) {
-                if (value.moveToFirst()) {
+                if (value.moveToFirst()) { // Peer exists
                     peer.id = PeerContract.getId(value);
                     values.clear();
                     message.writeToProvider(values, peer.id);
                     getAsyncResolver().insertAsync(MessageContract.CONTENT_URI, values, new IContinue<Uri>() {
                         public void kontinue(Uri value) {
                             message.id = MessageContract.getId(value);
-                            Log.v("GET Message ID: ", String.valueOf(message.id));
                         }
                     });
                 }
@@ -46,13 +69,11 @@ public class MessageManager extends Manager<Message> {
                     getAsyncResolver().insertAsync(PeerContract.CONTENT_URI, values, new IContinue<Uri>() {
                         public void kontinue(Uri value) {
                             peer.id = PeerContract.getId(value);
-                            Log.v("Get Peer ID: ", String.valueOf(peer.id));
                             values.clear();
                             message.writeToProvider(values, peer.id);
                             getAsyncResolver().insertAsync(MessageContract.CONTENT_URI, values, new IContinue<Uri>() {
                                 public void kontinue(Uri value) {
                                     message.id = MessageContract.getId(value);
-                                    Log.v("GET Message ID: ", String.valueOf(message.id));
                                 }
                             });
                         }

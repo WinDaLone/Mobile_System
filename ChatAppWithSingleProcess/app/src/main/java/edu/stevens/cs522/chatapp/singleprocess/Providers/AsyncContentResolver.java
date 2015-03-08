@@ -5,6 +5,7 @@ import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.net.Uri;
+import android.util.Log;
 
 import edu.stevens.cs522.chatapp.singleprocess.IContinue;
 
@@ -36,9 +37,11 @@ public class AsyncContentResolver extends AsyncQueryHandler {
 
     @Override
     protected void onQueryComplete(int token, Object cookie, Cursor cursor) {
+        Log.v("Check","callback");
         if (cookie != null) {
             @SuppressWarnings("unchecked")
             IContinue<Cursor> callback = (IContinue<Cursor>)cookie;
+            Log.v("Callback", "created");
             callback.kontinue(cursor);
         }
     }
