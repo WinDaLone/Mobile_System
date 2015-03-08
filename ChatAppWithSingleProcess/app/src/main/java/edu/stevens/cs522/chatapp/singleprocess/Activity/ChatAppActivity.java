@@ -29,6 +29,7 @@ import edu.stevens.cs522.chatapp.singleprocess.Service.ChatReceiverService;
 import edu.stevens.cs522.chatapp.singleprocess.Service.ChatSenderService;
 
 public class ChatAppActivity extends ActionBarActivity {
+    @SuppressWarnings("unused")
     private static final String TAG = ChatAppActivity.class.getCanonicalName();
     private static final int CHAT_SERVER_LOADER_ID = 1;
     private static final String CLIENT_NAME_KEY = "client_name";
@@ -49,8 +50,6 @@ public class ChatAppActivity extends ActionBarActivity {
     public static final int REQUEST_USER = 1;
     private ChatSenderService service;
     private boolean serviceBound;
-    //IntentFilter filter = new IntentFilter(Intent.ACTION_PROVIDER_CHANGED);
-    //Receiver receiver;
 
     private ServiceConnection connection = new ServiceConnection() {
         @Override
@@ -104,16 +103,14 @@ public class ChatAppActivity extends ActionBarActivity {
                 cursorAdapter.swapCursor(null);
             }
         });
-        //receiver = new Receiver();
-        //registerReceiver(receiver, filter);
-        // TODO: start receiver service
+        // Start receiver service
         intentReceiver = new Intent(this, ChatReceiverService.class);
         startService(intentReceiver);
     }
 
     @Override
     protected void onStart() {
-        // TODO: bind sender service
+        // Bind sender service
         sendIntent = new Intent(ChatAppActivity.this, ChatSenderService.class);
         bindService(sendIntent, connection, Context.BIND_AUTO_CREATE);
         super.onStart();
@@ -175,7 +172,6 @@ public class ChatAppActivity extends ActionBarActivity {
         if (intentReceiver != null) {
             stopService(intentReceiver);
         }
-        //unregisterReceiver(receiver);
         super.onDestroy();
     }
 
