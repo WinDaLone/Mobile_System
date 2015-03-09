@@ -86,8 +86,8 @@ public class ChatAppActivity extends ActionBarActivity {
         setContentView(R.layout.activity_chat_app);
         Intent callingIntent = getIntent();
         if (callingIntent != null && callingIntent.getExtras() != null) {
-            clientName = callingIntent.getExtras().getString(CLIENT_NAME_KEY);
-            clientPort = callingIntent.getExtras().getInt(CLIENT_PORT_KEY);
+            clientName = callingIntent.getExtras().getString(CLIENT_NAME_KEY, DEFAULT_CLIENT_NAME);
+            clientPort = callingIntent.getExtras().getInt(CLIENT_PORT_KEY, DEFAULT_CLIENT_PORT);
         } else {
             clientName = DEFAULT_CLIENT_NAME;
             clientPort = DEFAULT_CLIENT_PORT;

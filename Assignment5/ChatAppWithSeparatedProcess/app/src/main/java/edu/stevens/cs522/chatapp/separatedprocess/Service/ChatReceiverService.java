@@ -32,6 +32,7 @@ public class ChatReceiverService extends IntentService {
     private DatagramSocket serverSocket;
     private boolean socketOK = true;
     private MessageManager manager;
+    private boolean isStopped = false;
 
     public ChatReceiverService() {
         super("ChatReceiverService");
@@ -82,23 +83,26 @@ public class ChatReceiverService extends IntentService {
                         sendBroadcast(broadcastIntent);
                     }
                 } catch (IOException e) {
-                    Log.e(TAG, e.getMessage());
-                    if (serverSocket != null && serverSocket.isClosed()) {
-                        serverSocket = null;
+                    if (e.getMessage().compareTo("Socket closed") != 0) {
+                        Log.e(TAG, e.getMessage());
+                        socketOK = false;
                     }
-                    socketOK = false;
                 }
             }
+            isStopped = true;
         }
     }
-
-
     @Override
     public void onDestroy() {
         if (socketOK && serverSocket != null) {
             serverSocket.close();
-            serverSocket = null;
         }
+        while(true){
+            if (isStopped) {
+                break;
+            }
+        }
+        serverSocket = null;
         super.onDestroy();
     }
 }

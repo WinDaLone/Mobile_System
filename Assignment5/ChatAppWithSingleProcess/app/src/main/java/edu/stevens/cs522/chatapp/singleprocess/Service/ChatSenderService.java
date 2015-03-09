@@ -27,7 +27,7 @@ public class ChatSenderService extends Service {
     private boolean socketOK = true;
 
     private static final String SEPARATE_CHAR = "|";
-    private static final int DEFAULT_SENDER_PORT = 6667;
+    //private static final int DEFAULT_SENDER_PORT = 6667;
 
     private final IBinder binder = new IChatSendService();
 
@@ -54,7 +54,7 @@ public class ChatSenderService extends Service {
             public void run() {
                 if (clientSocket == null) {
                     try {
-                        clientSocket = new DatagramSocket(DEFAULT_SENDER_PORT);
+                        clientSocket = new DatagramSocket();
                     } catch (Exception e) {
                         Log.e(TAG, "Cannot open socket: " + e.getMessage());
                         socketOK = false;

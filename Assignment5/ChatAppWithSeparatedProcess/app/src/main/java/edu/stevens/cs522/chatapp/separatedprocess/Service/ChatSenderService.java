@@ -53,7 +53,6 @@ public class ChatSenderService extends Service {
         Looper messengerLooper = messengerThread.getLooper();
         handler = new MessageHandler(messengerLooper);
         messenger = new Messenger(handler);
-
     }
 
     private class MessageHandler extends Handler {

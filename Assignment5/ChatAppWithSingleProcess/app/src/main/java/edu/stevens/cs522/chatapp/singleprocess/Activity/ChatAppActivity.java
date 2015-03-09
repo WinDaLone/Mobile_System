@@ -68,18 +68,24 @@ public class ChatAppActivity extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat_app);
+
         Intent callingIntent = getIntent();
+
         if (callingIntent != null && callingIntent.getExtras() != null) {
-            clientName = callingIntent.getExtras().getString(CLIENT_NAME_KEY);
-            clientPort = callingIntent.getExtras().getInt(CLIENT_PORT_KEY);
+            clientName = callingIntent.getExtras().getString(CLIENT_NAME_KEY, DEFAULT_CLIENT_NAME);
+            clientPort = callingIntent.getExtras().getInt(CLIENT_PORT_KEY, DEFAULT_CLIENT_PORT);
         } else {
             clientName = DEFAULT_CLIENT_NAME;
             clientPort = DEFAULT_CLIENT_PORT;
         }
+
+        clientName = DEFAULT_CLIENT_NAME;
+        clientPort = DEFAULT_CLIENT_PORT;
         destinationHost = (EditText)findViewById(R.id.destination_host);
         destinationPort = (EditText)findViewById(R.id.destination_port);
         messageText = (EditText)findViewById(R.id.message_text);
         messageList = (ListView)findViewById(R.id.message_list);
+        messageText.setText("");
         manager = new MessageManager(this, new IEntityCreator<Message>() {
             @Override
             public Message create(Cursor cursor) {
@@ -102,6 +108,7 @@ public class ChatAppActivity extends ActionBarActivity {
             public void closeResults() {
                 cursorAdapter.swapCursor(null);
             }
+
         });
         // Start receiver service
         intentReceiver = new Intent(this, ChatReceiverService.class);
