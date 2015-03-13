@@ -1,6 +1,7 @@
 package edu.stevens.cs522.simplecloudchatapp.Entities;
 
 import android.content.ContentValues;
+import android.database.Cursor;
 import android.os.Parcel;
 import android.os.Parcelable;
 import java.sql.Timestamp;
@@ -34,11 +35,25 @@ public class Message implements Parcelable{
         this.senderID = senderID;
     }
 
+    public Message(String messageText, Timestamp timestamp, long senderID, long messageID) {
+        this.messageText = messageText;
+        this.timestamp = timestamp;
+        this.senderID = senderID;
+        this.messageID = messageID;
+    }
+
     public Message(Parcel parcel) {
         this.messageID = parcel.readLong();
         this.messageText = parcel.readString();
         this.timestamp = new Timestamp(parcel.readLong());
         this.senderID = parcel.readLong();
+    }
+
+    public Message(Cursor cursor) {
+        this.messageID = MessageContract.getMessageId(cursor);
+        this.messageText = MessageContract.getMessageText(cursor);
+        this.timestamp = MessageContract.getTimestamp(cursor);
+        this.senderID = MessageContract.getSenderId(cursor);
     }
 
     public void writeToProvider(ContentValues values) {

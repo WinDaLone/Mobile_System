@@ -15,7 +15,7 @@ import edu.stevens.cs522.simplecloudchatapp.Entities.Message;
  * Created by wyf920621 on 3/12/15.
  */
 public class MessageManager extends Manager<Message> {
-    protected MessageManager(Context context, IEntityCreator<Message> creator, int loaderID) {
+    public MessageManager(Context context, IEntityCreator<Message> creator, int loaderID) {
         super(context, creator, loaderID);
     }
 

@@ -6,7 +6,6 @@
     <string name="destination_host_default">127.0.0.1</string>
     <string name="destination_port_default">8080</string>
     <string name="client_name_default">client</string>
-    <string name="hello_world">Hello world!</string>
     <string name="title_activity_setting">SettingActivity</string>
 
 </resources>

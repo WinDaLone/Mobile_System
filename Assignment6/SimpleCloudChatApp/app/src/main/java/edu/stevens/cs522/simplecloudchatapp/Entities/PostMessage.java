@@ -9,7 +9,10 @@ import android.util.Log;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.net.URLEncoder;
+import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -19,13 +22,13 @@ import java.util.UUID;
  */
 public class PostMessage extends Request {
     public static final String TAG = PostMessage.class.getCanonicalName();
-    private static final int UUIDFlag = 1;
 
-    private String host;
-    private int port;
-    private String chatroom;
-    private String timestamp;
-    private String text;
+    public long messageID;
+    public String host;
+    public int port;
+    public String chatroom;
+    public Timestamp timestamp;
+    public String text;
 
     public static final Creator<PostMessage> CREATOR = new Creator<PostMessage>() {
         @Override
@@ -39,7 +42,7 @@ public class PostMessage extends Request {
         }
     };
 
-    public PostMessage (String host, int port, UUID registrationID, long clientID, String chatroom, String timestamp, String text) {
+    public PostMessage (String host, int port, UUID registrationID, long clientID, String chatroom, Timestamp timestamp, String text, long messageID) {
         this.host = host;
         this.port = port;
         this.registrationID = registrationID;
@@ -47,6 +50,18 @@ public class PostMessage extends Request {
         this.chatroom = chatroom;
         this.timestamp = timestamp;
         this.text = text;
+        this.messageID = messageID;
+    }
+
+    public PostMessage (String host, int port, UUID registrationID, long clientID, String chatroom, Timestamp timestamp, String text) {
+        this.host = host;
+        this.port = port;
+        this.registrationID = registrationID;
+        this.clientID = clientID;
+        this.chatroom = chatroom;
+        this.timestamp = timestamp;
+        this.text = text;
+        this.messageID = 0;
     }
 
     public PostMessage (Parcel parcel) {
@@ -56,16 +71,34 @@ public class PostMessage extends Request {
         this.registrationID = parcelUuid.getUuid();
         this.clientID = parcel.readLong();
         this.chatroom = parcel.readString();
-        this.timestamp = parcel.readString();
+        this.timestamp = new Timestamp(parcel.readLong());
         this.text = parcel.readString();
+        this.messageID = parcel.readLong();
     }
     @Override
     public Map<String, String> getRequestHeaders() {
         Map<String, String> stringMap = new HashMap<>();
-        stringMap.put("Content-Type", "application/json");
         stringMap.put("X-latitude", "40.7439905");
         stringMap.put("X-longitude", "-74.0323626");
         return stringMap;
+    }
+
+    @Override
+    public URL getRequestUrl() {
+        String requestString = "http://" + host + ":" + String.valueOf(port) + "/chat/" +
+                String.valueOf(registrationID.getMostSignificantBits()) + String.valueOf(registrationID.getLeastSignificantBits()) +
+                "?";
+        URL url = null;
+        try {
+            requestString += "regid=" + URLEncoder.encode(String.valueOf(clientID), encoding);
+            url = new URL(requestString);
+        } catch (UnsupportedEncodingException e) {
+            Log.e(TAG, e.getMessage());
+        } catch (MalformedURLException e) {
+            Log.e(TAG, e.getMessage());
+        }
+
+        return url;
     }
 
     @Override
@@ -104,10 +137,11 @@ public class PostMessage extends Request {
         parcel.writeString(this.host);
         parcel.writeInt(this.port);
         ParcelUuid parcelUuid = new ParcelUuid(registrationID);
-        parcel.writeParcelable(parcelUuid, UUIDFlag);
+        parcel.writeParcelable(parcelUuid, Request.UUIDFlag);
         parcel.writeLong(this.clientID);
         parcel.writeString(this.chatroom);
-        parcel.writeString(this.timestamp);
+        parcel.writeLong(this.timestamp.getTime());
         parcel.writeString(this.text);
+        parcel.writeLong(this.messageID);
     }
 }

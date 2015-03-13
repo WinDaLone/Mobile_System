@@ -6,6 +6,7 @@ import android.util.JsonReader;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.Map;
 import java.util.UUID;
 
@@ -15,7 +16,9 @@ import java.util.UUID;
 public abstract class Request implements Parcelable {
     protected static final String encoding = "UTF-8";
     public long clientID;
+    public static final int UUIDFlag = 1;
     public UUID registrationID; // sanity check
+    public abstract URL getRequestUrl();
     // App-specific HTTP requst headers
     public abstract Map<String, String> getRequestHeaders();
     // Chat service URI with parameters e.g. query string parameters

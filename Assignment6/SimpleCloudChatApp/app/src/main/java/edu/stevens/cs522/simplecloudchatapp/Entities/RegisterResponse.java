@@ -12,7 +12,7 @@ import java.io.IOException;
  */
 public class RegisterResponse extends Response {
     public static final String TAG = RegisterResponse.class.getCanonicalName();
-    public long id;
+
     public static final Creator<RegisterResponse> CREATOR = new Creator<RegisterResponse>() {
         @Override
         public RegisterResponse createFromParcel(Parcel source) {

@@ -13,7 +13,6 @@ import java.io.IOException;
 public class PostMessageResponse extends Response {
     public static final String TAG = PostMessageResponse.class.getCanonicalName();
 
-    private long messageID;
     public static final Creator<PostMessageResponse> CREATOR = new Creator<PostMessageResponse>() {
         @Override
         public PostMessageResponse createFromParcel(Parcel source) {
@@ -31,7 +30,7 @@ public class PostMessageResponse extends Response {
     }
 
     public PostMessageResponse(Parcel parcel) {
-        this.messageID = parcel.readLong();
+        this.id = parcel.readLong();
     }
 
     private void parse(JsonReader jsonReader) {
@@ -41,7 +40,7 @@ public class PostMessageResponse extends Response {
                 String label = jsonReader.nextName();
                 if ("id".equals(label)) {
                     jsonReader.beginArray();
-                    this.messageID = jsonReader.nextLong();
+                    this.id = jsonReader.nextLong();
                     jsonReader.endArray();
                     jsonReader.endObject();
                     return;
@@ -51,13 +50,13 @@ public class PostMessageResponse extends Response {
         } catch (IOException e) {
             Log.e(TAG, e.getMessage());
         } finally {
-            this.messageID = 0;
+            this.id = 0;
         }
 
     }
     @Override
     public boolean isValid() {
-        return this.messageID != 0;
+        return this.id != 0;
     }
 
     @Override
@@ -67,6 +66,6 @@ public class PostMessageResponse extends Response {
 
     @Override
     public void writeToParcel(Parcel parcel, int flags) {
-        parcel.writeLong(messageID);
+        parcel.writeLong(id);
     }
 }
