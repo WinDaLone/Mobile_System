@@ -27,6 +27,12 @@
 
     </LinearLayout>
 
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/warning_view"
+        android:textColor="#ffcc161f" />
+
     <ListView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

@@ -31,6 +31,7 @@ public class RestMethod {
     }
     public Response perform(Register request) {
         URL url = request.getRequestUrl();
+        Log.i(TAG, "URL to request: " + url.toString());
         if(isOnline()) {
             try {
                 // prepare request
@@ -56,11 +57,8 @@ public class RestMethod {
                 JsonReader jsonReader = new JsonReader(new BufferedReader(new InputStreamReader(connection.getInputStream())));
                 Response response = request.getResponse(connection, jsonReader);
                 jsonReader.close();
-                if (response.isValid()) {
-                    connection.disconnect();
-                    return response;
-                }
                 connection.disconnect();
+                return response;
             } catch (IOException e) {
                 Log.e(TAG, e.getMessage());
             }
@@ -84,21 +82,16 @@ public class RestMethod {
                 for (Map.Entry<String, String> header : headers.entrySet()) {
                     connection.addRequestProperty(header.getKey(), header.getValue());
                 }
-
+                connection.setDoInput(true);
                 // execute
                 outputRequestEntity(request);
-                connection.setDoInput(true);
                 connection.connect();
                 throwErrors(connection);
-
                 JsonReader reader = new JsonReader(new BufferedReader(new InputStreamReader(connection.getInputStream())));
                 Response response = request.getResponse(connection, reader);
                 reader.close();
-                if (response.isValid()) {
-                    connection.disconnect();
-                    return response;
-                }
                 connection.disconnect();
+                return response;
             } catch (IOException e) {
                 Log.e(TAG, e.getMessage());
             }
@@ -115,7 +108,7 @@ public class RestMethod {
         String requestEntity = request.getRequestEntity();
         if (requestEntity != null) {
             connection.setDoOutput(true);
-            connection.setRequestProperty("CONTENT_TYPE", "application/json");
+            connection.setRequestProperty("Content-Type", "application/json");
             byte[] outputEntity = requestEntity.getBytes("UTF-8");
             connection.setFixedLengthStreamingMode(outputEntity.length);
             OutputStream out = new BufferedOutputStream(connection.getOutputStream());

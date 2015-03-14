@@ -3,9 +3,7 @@
     <string name="send_label">SEND</string>
     <string name="action_settings">Settings</string>
     <string name="message_edit_text">Type your message here.</string>
-    <string name="destination_host_default">127.0.0.1</string>
-    <string name="destination_port_default">8080</string>
-    <string name="client_name_default">client</string>
+
     <string name="title_activity_setting">SettingActivity</string>
 
 </resources>

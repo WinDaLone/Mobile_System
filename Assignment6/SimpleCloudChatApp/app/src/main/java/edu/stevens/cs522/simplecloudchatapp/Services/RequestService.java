@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.ResultReceiver;
+import android.util.Log;
 
 import edu.stevens.cs522.simplecloudchatapp.Activities.SettingActivity;
 import edu.stevens.cs522.simplecloudchatapp.Callbacks.IContinue;
@@ -26,12 +27,15 @@ import edu.stevens.cs522.simplecloudchatapp.RequestProcessor;
  * TODO: Customize class - update intent actions and extra parameters.
  */
 public class RequestService extends IntentService {
+    public static final String TAG = RequestService.class.getCanonicalName();
     // IntentService can perform, e.g. ACTION_FETCH_NEW_ITEMS
     public static final String ACTION_REGISTER = "edu.stevens.cs522.simplecloudchatapp.Services.action.REGISTER";
     public static final String ACTION_POST_MESSAGE = "edu.stevens.cs522.simplecloudchatapp.Services.action.POST_MESSAGE";
 
-    public static final int RESULT_OK = 0;
-    public static final int RESULT_FAILED = 1;
+    private static int messageCount = 1;
+    public static final int RESULT_REGISTER_OK = 0;
+    public static final int RESULT_MESSAGE_OK = 1;
+    public static final int RESULT_FAILED = 2;
 
     public static final int REQUEST_SERVICE_LOADERID = 2;
     private RequestProcessor requestProcessor = null;
@@ -66,6 +70,7 @@ public class RequestService extends IntentService {
                 throw new UnsupportedOperationException("Unsupported Action");
             }
         }
+        stopSelf();
     }
 
     private void handleRegister(Intent intent) {
@@ -73,19 +78,21 @@ public class RequestService extends IntentService {
         requestProcessor.perform(request, new IContinue<Response>() {
             @Override
             public void kontinue(Response value) {
-                if (value.isValid()) {
-                    request.clientID = value.id;
+                if (value != null && value.isValid()) {
+                    Response.RegisterResponse response = (Response.RegisterResponse)value;
+                    request.clientID = response.id;
+                    Log.i("Client to be saved: ", request.clientName + " " + request.host + ":" + String.valueOf(request.port) + " " + request.clientID);
                     SharedPreferences preferences = getSharedPreferences(SettingActivity.MY_SHARED_PREF, Context.MODE_PRIVATE);
                     SharedPreferences.Editor editor = preferences.edit();
                     editor.putString(SettingActivity.PREF_USERNAME, request.clientName);
                     editor.putLong(SettingActivity.PREF_IDENTIFIER, request.clientID);
                     editor.putString(SettingActivity.PREF_HOST, request.host);
                     editor.putInt(SettingActivity.PREF_PORT, request.port);
-                    editor.putLong(SettingActivity.PREF_REGID_MOST, request.registrationID.getMostSignificantBits());
-                    editor.putLong(SettingActivity.PREF_REGID_LEAST, request.registrationID.getLeastSignificantBits());
                     editor.apply();
-                    resultReceiver.send(RESULT_OK, null);
+                    Log.i(TAG, "Register save successfully");
+                    resultReceiver.send(RESULT_REGISTER_OK, null);
                 } else {
+                    Log.i(TAG, "Register save failed");
                     resultReceiver.send(RESULT_FAILED, null);
                 }
             }
@@ -97,11 +104,14 @@ public class RequestService extends IntentService {
         requestProcessor.perform(postMessage, new IContinue<Response>() {
             @Override
             public void kontinue(Response value) {
-                if (value.isValid()) {
-                    postMessage.messageID = value.id;
+                if (value != null && value.isValid()) {
+                    Response.RegisterResponse response = (Response.RegisterResponse)value;
+                    postMessage.messageID = response.id;
+                    Log.i("Message to be saved: ", postMessage.text + " " + postMessage.messageID);
                     manager.persistSync(new Message(postMessage.text, postMessage.timestamp, postMessage.clientID, postMessage.messageID));
-                    resultReceiver.send(RESULT_OK, null);
+                    resultReceiver.send(RESULT_MESSAGE_OK, null);
                 } else {
+                    Log.i(TAG, "message save failed");
                     resultReceiver.send(RESULT_FAILED, null);
                 }
             }

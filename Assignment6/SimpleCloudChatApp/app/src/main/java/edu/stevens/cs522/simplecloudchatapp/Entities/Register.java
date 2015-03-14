@@ -9,8 +9,6 @@ import android.util.Log;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
@@ -38,20 +36,20 @@ public class Register extends Request {
     };
 
 
-    public Register(String host, int port, String clientName, long clientId) {
+    public Register(String host, int port, String clientName, long clientId, UUID registrationID) {
         this.host = host;
         this.port = port;
         this.clientName = clientName;
         this.clientID = clientId;
-        this.registrationID = UUID.randomUUID();
+        this.registrationID = registrationID;
     }
 
-    public Register(String host, int port, String clientName) {
+    public Register(String host, int port, String clientName, UUID registrationID) {
         this.host = host;
         this.port = port;
         this.clientName = clientName;
-        this.clientID = 0;
-        this.registrationID = UUID.randomUUID();
+        this.clientID = -1;
+        this.registrationID = registrationID;
     }
 
     public Register(Parcel parcel) {
@@ -71,27 +69,12 @@ public class Register extends Request {
     }
 
     @Override
-    public URL getRequestUrl() {
-        String RequestString = "http://" + host + ":" + String.valueOf(port) + "/chat?";
-        URL url = null;
-        try {
-            RequestString += "username=" + URLEncoder.encode(clientName, encoding);
-            RequestString += "&regid=" + URLEncoder.encode(String.valueOf(clientID), encoding);
-            url = new URL(RequestString);
-        } catch (UnsupportedEncodingException e) {
-            Log.e(TAG, e.getMessage());
-        } catch (MalformedURLException e) {
-            Log.e(TAG, e.getMessage());
-        }
-        return url;
-    }
-
-    @Override
     public Uri getRequestUri() {
         String RequestString = "http://" + host + ":" + String.valueOf(port) + "/chat?";
         try {
             RequestString += "username=" + URLEncoder.encode(clientName, encoding);
-            RequestString += "&regid=" + URLEncoder.encode(String.valueOf(clientID), encoding);
+            RequestString += "&regid=" + URLEncoder.encode(String.valueOf(registrationID.toString()), encoding);
+            Log.v(TAG, "Register Request URI: " + RequestString);
         } catch (UnsupportedEncodingException e) {
             Log.e(TAG, e.getMessage());
         }
@@ -104,8 +87,8 @@ public class Register extends Request {
     }
 
     @Override
-    public Response getResponse(HttpURLConnection connection, JsonReader reader) {
-        return new RegisterResponse(reader);
+    public Response getResponse(HttpURLConnection connection, JsonReader reader) throws IOException{
+        return new Response.RegisterResponse(connection, reader);
     }
 
     @Override

@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -13,11 +14,13 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
+import android.widget.TextView;
 
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.UUID;
 
+import edu.stevens.cs522.simplecloudchatapp.AckReceiverWrapper;
 import edu.stevens.cs522.simplecloudchatapp.Callbacks.IEntityCreator;
 import edu.stevens.cs522.simplecloudchatapp.Callbacks.IQueryListener;
 import edu.stevens.cs522.simplecloudchatapp.Contracts.MessageContract;
@@ -27,12 +30,13 @@ import edu.stevens.cs522.simplecloudchatapp.Helpers.ServiceHelper;
 import edu.stevens.cs522.simplecloudchatapp.Managers.MessageManager;
 import edu.stevens.cs522.simplecloudchatapp.Managers.TypedCursor;
 import edu.stevens.cs522.simplecloudchatapp.R;
+import edu.stevens.cs522.simplecloudchatapp.Services.RequestService;
 
 
 public class ChatAppActivity extends ActionBarActivity {
     public static final String TAG = ChatAppActivity.class.getCanonicalName();
-    public static final String DEFAULT_HOST = "localhost";
-    public static final int DEFAULT_PORT = 8080;
+    public static final String DEFAULT_HOST = SettingActivity.DESTINATION_HOST_DEFAULT;
+    public static final int DEFAULT_PORT = SettingActivity.DESTINATION_PORT_DEFAULT;
 
     public static final int CHAT_APP_LOADER_ID = 1;
     public static final int REQUEST_CODE = 1;
@@ -43,12 +47,15 @@ public class ChatAppActivity extends ActionBarActivity {
     private ListView messageList;
     private EditText messageText;
     private Button sendButton;
+    private TextView warningView;
 
     private String clientName;
     private long clientID;
     private String host;
     private int port;
     private UUID registrationID;
+    private AckReceiverWrapper.IReceiver receiver = null;
+    private AckReceiverWrapper wrapper = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,6 +64,8 @@ public class ChatAppActivity extends ActionBarActivity {
 
         messageList = (ListView)findViewById(R.id.message_list);
         messageText = (EditText)findViewById(R.id.message_text);
+        warningView = (TextView)findViewById(R.id.warning_view);
+        messageText.setText("");
         sendButton = (Button)findViewById(R.id.send_button);
         manager = new MessageManager(this, new IEntityCreator<Message>() {
             @Override
@@ -88,13 +97,21 @@ public class ChatAppActivity extends ActionBarActivity {
                 String message = messageText.getText().toString();
                 Date date = new Date();
                 PostMessage postMessage = new PostMessage(host, port, registrationID, clientID, "_default", new Timestamp(date.getTime()), message);
-                boolean res = serviceHelper.PostMessage(postMessage);
-                if (res) {
-                    getContentResolver().notifyChange(MessageContract.CONTENT_URI, null);
-                    Log.v(TAG, "Message post success");
-                } else {
-                    Log.e(TAG, "Message post failed");
-                }
+                receiver = new AckReceiverWrapper.IReceiver() {
+                    @Override
+                    public void onReceiveResult(int resultCode, Bundle resultData) {
+                        if (resultCode == RequestService.RESULT_MESSAGE_OK) {
+                            getContentResolver().notifyChange(MessageContract.CONTENT_URI, null);
+                            Log.v(TAG, "Message post success");
+                        } else {
+                            Log.e(TAG, "Message post failed");
+                        }
+                    }
+                };
+                wrapper = new AckReceiverWrapper(new Handler());
+                wrapper.setReceiver(receiver);
+                serviceHelper.PostMessage(postMessage, wrapper);
+                messageText.setText("");
             }
         });
     }
@@ -102,14 +119,19 @@ public class ChatAppActivity extends ActionBarActivity {
     private void resetInfo() {
         SharedPreferences sharedPreferences = getSharedPreferences(SettingActivity.MY_SHARED_PREF, MODE_PRIVATE);
         clientName = sharedPreferences.getString(SettingActivity.PREF_USERNAME, "");
-        clientID = sharedPreferences.getLong(SettingActivity.PREF_IDENTIFIER, 0);
+        clientID = sharedPreferences.getLong(SettingActivity.PREF_IDENTIFIER, -1);
         host = sharedPreferences.getString(SettingActivity.PREF_HOST, DEFAULT_HOST);
         port = sharedPreferences.getInt(SettingActivity.PREF_PORT, DEFAULT_PORT);
         registrationID = new UUID(sharedPreferences.getLong(SettingActivity.PREF_REGID_MOST, 0), sharedPreferences.getLong(SettingActivity.PREF_REGID_LEAST, 0));
-        if (clientID == 0) {
+        if (clientID == -1) {
+            Log.i(TAG, "NEED TO REGISTER APP");
             sendButton.setEnabled(false);
+            warningView.setText("Please first register the app");
+
         } else {
+            Log.i(TAG, "APP INSTALLATION VALID");
             sendButton.setEnabled(true);
+            warningView.setText("");
         }
     }
 
@@ -142,10 +164,10 @@ public class ChatAppActivity extends ActionBarActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_CODE) {
             if (resultCode == RESULT_OK) {
-                Log.v(SettingActivity.TAG, "Register successfully");
+                Log.v(TAG, "Register successfully");
                 resetInfo();
             } else {
-                Log.v(SettingActivity.TAG, "Register failed");
+                Log.v(TAG, "Register failed");
             }
         }
     }

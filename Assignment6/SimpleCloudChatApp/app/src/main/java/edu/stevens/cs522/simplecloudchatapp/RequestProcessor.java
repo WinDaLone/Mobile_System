@@ -1,6 +1,7 @@
 package edu.stevens.cs522.simplecloudchatapp;
 
 import android.content.Context;
+import android.util.Log;
 
 import edu.stevens.cs522.simplecloudchatapp.Callbacks.IContinue;
 import edu.stevens.cs522.simplecloudchatapp.Entities.PostMessage;
@@ -11,6 +12,7 @@ import edu.stevens.cs522.simplecloudchatapp.Entities.Response;
  * Created by wyf920621 on 3/13/15.
  */
 public class RequestProcessor {
+    public static final String TAG = RequestProcessor.class.getCanonicalName();
     private RestMethod restMethod;
     public RequestProcessor(Context context) {
         restMethod = new RestMethod(context);
@@ -19,6 +21,8 @@ public class RequestProcessor {
         Response response = restMethod.perform(register);
         if (response != null) {
             iContinue.kontinue(response);
+        } else {
+            Log.e(TAG, "No Response");
         }
     }
 
@@ -26,6 +30,8 @@ public class RequestProcessor {
         Response response = restMethod.perform(postMessage);
         if (response != null) {
             iContinue.kontinue(response);
+        } else {
+            Log.e(TAG, "No Response");
         }
     }
 }

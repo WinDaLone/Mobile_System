@@ -9,8 +9,6 @@ import android.util.Log;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.net.URLEncoder;
 import java.sql.Timestamp;
 import java.util.HashMap;
@@ -84,30 +82,13 @@ public class PostMessage extends Request {
     }
 
     @Override
-    public URL getRequestUrl() {
-        String requestString = "http://" + host + ":" + String.valueOf(port) + "/chat/" +
-                String.valueOf(registrationID.getMostSignificantBits()) + String.valueOf(registrationID.getLeastSignificantBits()) +
-                "?";
-        URL url = null;
-        try {
-            requestString += "regid=" + URLEncoder.encode(String.valueOf(clientID), encoding);
-            url = new URL(requestString);
-        } catch (UnsupportedEncodingException e) {
-            Log.e(TAG, e.getMessage());
-        } catch (MalformedURLException e) {
-            Log.e(TAG, e.getMessage());
-        }
-
-        return url;
-    }
-
-    @Override
     public Uri getRequestUri() {
         String requestString = "http://" + host + ":" + String.valueOf(port) + "/chat/" +
-                String.valueOf(registrationID.getMostSignificantBits()) + String.valueOf(registrationID.getLeastSignificantBits()) +
+                String.valueOf(clientID) +
                 "?";
         try {
-            requestString += "regid=" + URLEncoder.encode(String.valueOf(clientID), encoding);
+            requestString += "regid=" + URLEncoder.encode(registrationID.toString(), encoding);
+            Log.v(TAG, "Post Request URI: " + requestString);
         } catch (UnsupportedEncodingException e) {
             Log.e(TAG, e.getMessage());
         }
@@ -118,13 +99,14 @@ public class PostMessage extends Request {
     @Override
     public String getRequestEntity() throws IOException {
         String entity = "";
-        entity += "{ \"chatroom\" : \"" + chatroom +"\", \"timestamp\" : " + timestamp + ", \"text\" : \"" + text + "\" }";
+        entity += "{ \"chatroom\" : \"" + chatroom +"\", \"timestamp\" : " + timestamp.getTime() + ", \"text\" : \"" + text + "\" }";
+        Log.v(TAG, "Post Request Entity: " + entity);
         return entity;
     }
 
     @Override
-    public Response getResponse(HttpURLConnection connection, JsonReader reader) {
-        return new PostMessageResponse(reader);
+    public Response getResponse(HttpURLConnection connection, JsonReader reader) throws IOException {
+        return new Response.RegisterResponse(connection, reader);
     }
 
     @Override
