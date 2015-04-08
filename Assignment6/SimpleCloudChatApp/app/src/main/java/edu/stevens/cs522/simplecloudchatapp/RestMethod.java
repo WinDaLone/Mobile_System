@@ -18,6 +18,7 @@ import edu.stevens.cs522.simplecloudchatapp.Entities.PostMessage;
 import edu.stevens.cs522.simplecloudchatapp.Entities.Register;
 import edu.stevens.cs522.simplecloudchatapp.Entities.Request;
 import edu.stevens.cs522.simplecloudchatapp.Entities.Response;
+import edu.stevens.cs522.simplecloudchatapp.Entities.Synchronize;
 
 /**
  * Created by wyf920621 on 3/13/15.
@@ -99,6 +100,47 @@ public class RestMethod {
         return null;
     }
 
+    public static class StreamingResponse {
+        public HttpURLConnection connection;
+        public Response response;
+
+        public  StreamingResponse(HttpURLConnection connection, Response response) {
+            this.connection = connection;
+            this.response = response;
+        }
+        // TODO
+    }
+
+    public StreamingResponse perform(Synchronize request) {
+        URL url = request.getRequestUrl();
+        Log.i(TAG, "URL to synchronize: " + url.toString());
+        if (isOnline()) {
+            try {
+                connection = (HttpURLConnection)url.openConnection();
+                connection.setRequestProperty("USER_AGENT", TAG);
+                connection.setRequestMethod("POST");
+                connection.setUseCaches(false);
+                connection.setRequestProperty("CONNECTION", "Keep-Alive");
+                connection.setConnectTimeout(15000);
+                connection.setReadTimeout(10000);
+                Map<String, String> headers = request.getRequestHeaders();
+                for(Map.Entry<String, String> header : headers.entrySet()) {
+                    connection.addRequestProperty(header.getKey(), header.getValue());
+                }
+                connection.setDoOutput(true);
+                connection.setChunkedStreamingMode(0);
+                connection.setDoInput(true);
+                connection.connect();
+                throwErrors(connection);
+                JsonReader reader = new JsonReader(new BufferedReader(new InputStreamReader(connection.getInputStream())));
+                return new StreamingResponse(connection, request.getResponse(connection, reader));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return null;
+    }
+
     private boolean isOnline() {
         ConnectivityManager connectivityManager = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
         return connectivityManager.getActiveNetworkInfo() != null && connectivityManager.getActiveNetworkInfo().isConnectedOrConnecting();
@@ -125,4 +167,5 @@ public class RestMethod {
             throw new IOException(exceptionMessage);
         }
     }
+
 }

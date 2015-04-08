@@ -36,4 +36,11 @@ public class ServiceHelper {
         intent.putExtra(ACK, wrapper);
         context.startService(intent);
     }
+
+    public void RefreshMessage(AckReceiverWrapper wrapper) {
+        Intent intent = new Intent(context, RequestService.class);
+        intent.setAction(RequestService.ACTION_REFRESH);
+        intent.putExtra(ACK, wrapper);
+        context.startService(intent);
+    }
 }
