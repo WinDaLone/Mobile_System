@@ -6,6 +6,7 @@ import android.content.Intent;
 import edu.stevens.cs522.simplecloudchatapp.AckReceiverWrapper;
 import edu.stevens.cs522.simplecloudchatapp.Entities.PostMessage;
 import edu.stevens.cs522.simplecloudchatapp.Entities.Register;
+import edu.stevens.cs522.simplecloudchatapp.Entities.Synchronize;
 import edu.stevens.cs522.simplecloudchatapp.Services.RequestService;
 
 /**
@@ -37,9 +38,10 @@ public class ServiceHelper {
         context.startService(intent);
     }
 
-    public void RefreshMessage(AckReceiverWrapper wrapper) {
+    public void RefreshMessage(Synchronize request, AckReceiverWrapper wrapper) {
         Intent intent = new Intent(context, RequestService.class);
         intent.setAction(RequestService.ACTION_REFRESH);
+        intent.putExtra(REQUEST_KEY, request);
         intent.putExtra(ACK, wrapper);
         context.startService(intent);
     }

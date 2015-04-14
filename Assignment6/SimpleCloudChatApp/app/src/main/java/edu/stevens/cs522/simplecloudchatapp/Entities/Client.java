@@ -1,10 +1,14 @@
 package edu.stevens.cs522.simplecloudchatapp.Entities;
 
+import android.content.ContentValues;
+import android.database.Cursor;
 import android.os.Parcel;
 import android.os.ParcelUuid;
 import android.os.Parcelable;
 
 import java.util.UUID;
+
+import edu.stevens.cs522.simplecloudchatapp.Contracts.ClientContract;
 
 /**
  * Created by wyf920621 on 4/6/15.
@@ -40,10 +44,40 @@ public class Client implements Parcelable {
         this.uuid = uuid;
     }
 
+    public Client(String name) {
+        this.id = 0;
+        this.name = name;
+        this.uuid = null;
+    }
+
     public Client(Parcel parcel) {
         this.id = parcel.readLong();
         this.name = parcel.readString();
         ParcelUuid parcelUuid = parcel.readParcelable(ParcelUuid.class.getClassLoader());
         this.uuid = parcelUuid.getUuid();
+    }
+
+    public static final Creator<Client> CREATOR = new Creator<Client>() {
+        @Override
+        public Client createFromParcel(Parcel source) {
+            return new Client(source);
+        }
+
+        @Override
+        public Client[] newArray(int size) {
+            return new Client[size];
+        }
+    };
+
+    public void writeToProvider(ContentValues values) {
+        ClientContract.setClientId(values, id);
+        ClientContract.setName(values, name);
+        ClientContract.setUuid(values, uuid);
+    }
+
+    public Client(Cursor cursor) {
+        this.id = ClientContract.getClientId(cursor);
+        this.name = ClientContract.getName(cursor);
+        this.uuid = ClientContract.getUUID(cursor);
     }
 }

@@ -6,7 +6,8 @@
 
     <string name="title_activity_setting">SettingActivity</string>
     <string name="title_activity_clients">ClientsActivity</string>
-
+    <string name="clients">Show Clients</string>
+    <string name="client_message">Show messages</string>
     <string name="hello_world">Hello world!</string>
     <string name="title_activity_messages">MessagesActivity</string>
 

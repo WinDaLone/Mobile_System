@@ -1,5 +1,6 @@
 package edu.stevens.cs522.simplecloudchatapp.Entities;
 
+import android.content.ContentValues;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.JsonReader;
@@ -8,6 +9,10 @@ import android.util.Log;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.util.ArrayList;
+
+import edu.stevens.cs522.simplecloudchatapp.Contracts.ClientContract;
+import edu.stevens.cs522.simplecloudchatapp.Contracts.MessageContract;
 
 /**
  * Created by wyf920621 on 3/12/15.
@@ -17,7 +22,8 @@ public abstract class Response implements Parcelable {
 
     public static enum ResponseType {
         ERROR,
-        REGISTER
+        REGISTER,
+        SYNCHRONIZE
     }
 
     // Human-readable response message
@@ -200,6 +206,93 @@ public abstract class Response implements Parcelable {
             @Override
             public RegisterResponse[] newArray(int size) {
                 return new RegisterResponse[size];
+            }
+        };
+    }
+
+    public static class SyncResponse extends Response implements Parcelable {
+        public ArrayList<ContentValues> messageValues = null;
+        public ArrayList<String> client = null;
+        public SyncResponse(HttpURLConnection connection, JsonReader reader) throws IOException {
+            super(connection);
+            parseResponse(reader);
+        }
+
+        @Override
+        public boolean isValid() {
+            return client == null;
+        }
+
+        @Override
+        protected void parseResponse(JsonReader reader) throws IOException {
+            messageValues = new ArrayList<ContentValues>();
+            reader.beginObject();
+            matchName("clients", reader);
+            reader.beginArray();
+            while (reader.peek() != JsonToken.END_ARRAY) {
+                client.add(reader.nextString());
+            }
+            reader.endArray();
+
+            while (reader.peek() != JsonToken.END_OBJECT) {
+                if ("messages".equals(reader.nextName())) {
+                    reader.beginArray();
+                    while (reader.peek() != JsonToken.END_ARRAY) {
+                        ContentValues values = new ContentValues();
+                        reader.beginObject();
+                        while (reader.peek() != JsonToken.END_OBJECT) {
+                            String label = reader.nextName();
+                            if (label.equals(MessageContract.CHATROOM))
+                                values.put(MessageContract.CHATROOM, reader.nextString());
+                            if (label.equals(MessageContract.TIMESTAMP)) {
+                                long timestampValue = reader.nextLong();
+                                values.put(MessageContract.TIMESTAMP, timestampValue);
+                            }
+                            if (label.equals(MessageContract.SEQNUM)) {
+                                values.put(MessageContract.SEQNUM, reader.nextLong());
+                            }
+
+                            if (label.equals(ClientContract.NAME)) {
+                                values.put(ClientContract.NAME, reader.nextString());
+                            }
+
+                            if (label.equals(MessageContract.MESSAGE_TEXT)) {
+                                values.put(MessageContract.MESSAGE_TEXT, reader.nextLong());
+                            }
+                        }
+                        reader.endObject();
+                        messageValues.add(values);
+                    }
+                    reader.endArray();
+                }
+            }
+            reader.endObject();
+        }
+
+        @Override
+        public void writeToParcel(Parcel out, int flags) {
+            out.writeString(ResponseType.SYNCHRONIZE.name());
+            super.writeToParcel(out, flags);
+            out.writeTypedList(messageValues);
+            out.writeStringList(client);
+        }
+
+        @SuppressWarnings("unchecked")
+        public SyncResponse(Parcel in) {
+            super(in);
+            this.messageValues = in.readArrayList(ContentValues.class.getClassLoader());
+            in.readStringList(this.client);
+        }
+
+        public static final Creator<SyncResponse> CREATOR = new Creator<SyncResponse>() {
+            @Override
+            public SyncResponse createFromParcel(Parcel source) {
+                return new SyncResponse(source);
+            }
+
+            @Override
+            public SyncResponse[] newArray(int size) {
+                return new SyncResponse[size];
             }
         };
     }

@@ -17,15 +17,20 @@ import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 import edu.stevens.cs522.simplecloudchatapp.AckReceiverWrapper;
 import edu.stevens.cs522.simplecloudchatapp.Callbacks.IEntityCreator;
 import edu.stevens.cs522.simplecloudchatapp.Callbacks.IQueryListener;
+import edu.stevens.cs522.simplecloudchatapp.Callbacks.ISimpleQueryListener;
+import edu.stevens.cs522.simplecloudchatapp.Contracts.ClientContract;
 import edu.stevens.cs522.simplecloudchatapp.Contracts.MessageContract;
+import edu.stevens.cs522.simplecloudchatapp.Entities.Client;
 import edu.stevens.cs522.simplecloudchatapp.Entities.Message;
-import edu.stevens.cs522.simplecloudchatapp.Entities.PostMessage;
+import edu.stevens.cs522.simplecloudchatapp.Entities.Synchronize;
 import edu.stevens.cs522.simplecloudchatapp.Helpers.ServiceHelper;
 import edu.stevens.cs522.simplecloudchatapp.Managers.MessageManager;
 import edu.stevens.cs522.simplecloudchatapp.Managers.TypedCursor;
@@ -37,6 +42,7 @@ public class ChatAppActivity extends ActionBarActivity {
     public static final String TAG = ChatAppActivity.class.getCanonicalName();
     public static final String DEFAULT_HOST = SettingActivity.DESTINATION_HOST_DEFAULT;
     public static final int DEFAULT_PORT = SettingActivity.DESTINATION_PORT_DEFAULT;
+    public static Client client = null;
 
     public static final int CHAT_APP_LOADER_ID = 1;
     public static final int REQUEST_CODE = 1;
@@ -73,8 +79,8 @@ public class ChatAppActivity extends ActionBarActivity {
                 return new Message(cursor);
             }
         }, CHAT_APP_LOADER_ID);
-        String[] from = new String[] {MessageContract.MESSAGE_TEXT};
-        int[] to = new int[] {R.id.message_row};
+        String[] from = new String[] {MessageContract.MESSAGE_TEXT, ClientContract.NAME};
+        int[] to = new int[] {R.id.message_row, R.id.sender_row};
         cursorAdapter = new SimpleCursorAdapter(this, R.layout.message_row, null, from, to, 0);
         messageList.setAdapter(cursorAdapter);
 
@@ -94,24 +100,39 @@ public class ChatAppActivity extends ActionBarActivity {
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String message = messageText.getText().toString();
-                Date date = new Date();
-                PostMessage postMessage = new PostMessage(host, port, registrationID, clientID, "_default", new Timestamp(date.getTime()), message);
-                receiver = new AckReceiverWrapper.IReceiver() {
-                    @Override
-                    public void onReceiveResult(int resultCode, Bundle resultData) {
-                        if (resultCode == RequestService.RESULT_MESSAGE_OK) {
-                            getContentResolver().notifyChange(MessageContract.CONTENT_URI, null);
-                            Log.v(TAG, "Message post success");
-                        } else {
-                            Log.e(TAG, "Message post failed");
-                        }
-                    }
-                };
-                wrapper = new AckReceiverWrapper(new Handler());
-                wrapper.setReceiver(receiver);
-                serviceHelper.PostMessage(postMessage, wrapper);
+                String text = messageText.getText().toString();
+                final Message message = new Message("_default", text, new Timestamp(new Date().getTime()));
+                manager.persistAsync(message, client);
                 messageText.setText("");
+                manager.QueryDetail(MessageContract.CONTENT_URI, new ISimpleQueryListener<Message>() {
+                    @Override
+                    public void handleResults(List<Message> results) {
+                        // Synchrnoize with server
+                        long seqnum = 0; // Get sequnum
+                        List<Message> messages = new ArrayList<Message>(); // Store messages to be saved
+                        for (int i = 0; i < results.size(); i++) {
+                            long tempNum = results.get(i).seqnum;
+                            if (tempNum == 0) {
+                                messages.add(results.get(i));
+                            }
+                            if (tempNum > seqnum) {
+                                seqnum = tempNum;
+                            }
+                        }
+                        Synchronize request = new Synchronize(host, port, seqnum, messages);
+                        receiver = new AckReceiverWrapper.IReceiver() {
+                            @Override
+                            public void onReceiveResult(int resultCode, Bundle resultData) {
+                                if (resultCode == RequestService.RESULT_SYNC_OK) {
+                                    getContentResolver().notifyChange(MessageContract.CONTENT_URI, null);
+                                }
+                            }
+                        };
+                        wrapper = new AckReceiverWrapper(new Handler());
+                        wrapper.setReceiver(receiver);
+                        serviceHelper.RefreshMessage(request, wrapper);
+                    }
+                });
             }
         });
     }
@@ -130,6 +151,7 @@ public class ChatAppActivity extends ActionBarActivity {
 
         } else {
             Log.i(TAG, "APP INSTALLATION VALID");
+            client = new Client(clientID, clientName, registrationID);
             sendButton.setEnabled(true);
             warningView.setText("");
         }
@@ -153,6 +175,12 @@ public class ChatAppActivity extends ActionBarActivity {
         if (id == R.id.action_settings) {
             Intent intent = new Intent(this, SettingActivity.class);
             startActivityForResult(intent, REQUEST_CODE);
+            return true;
+        }
+
+        if (id == R.id.clients) {
+            Intent intent = new Intent(this, ClientsActivity.class);
+            startActivity(intent);
             return true;
         }
 

@@ -14,6 +14,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Map;
 
+import edu.stevens.cs522.simplecloudchatapp.Callbacks.IStreamingOutput;
 import edu.stevens.cs522.simplecloudchatapp.Entities.PostMessage;
 import edu.stevens.cs522.simplecloudchatapp.Entities.Register;
 import edu.stevens.cs522.simplecloudchatapp.Entities.Request;
@@ -109,9 +110,12 @@ public class RestMethod {
             this.response = response;
         }
         // TODO
+        public Response getResponse() {
+            return this.response;
+        }
     }
 
-    public StreamingResponse perform(Synchronize request) {
+    public StreamingResponse perform(Synchronize request, IStreamingOutput streamingOutput) {
         URL url = request.getRequestUrl();
         Log.i(TAG, "URL to synchronize: " + url.toString());
         if (isOnline()) {
@@ -132,6 +136,7 @@ public class RestMethod {
                 connection.setDoInput(true);
                 connection.connect();
                 throwErrors(connection);
+                streamingOutput.write(connection, request);
                 JsonReader reader = new JsonReader(new BufferedReader(new InputStreamReader(connection.getInputStream())));
                 return new StreamingResponse(connection, request.getResponse(connection, reader));
             } catch (IOException e) {
