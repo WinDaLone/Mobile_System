@@ -163,9 +163,9 @@ public class MessageDbProvider extends ContentProvider {
                             MessageContract.TABLE_NAME + "." + MessageContract.SEQNUM + " AS " + MessageContract.SEQNUM + ", " +
                             ClientContract.TABLE_NAME + "." + ClientContract.NAME + " AS " + ClientContract.NAME + ", " +
                             MessageContract.TABLE_NAME + "." + MessageContract.SENDER_ID + " AS " + MessageContract.SENDER_ID +
-                            " FROM " + ClientContract.TABLE_NAME + " LEFT OUTER JOIN " + MessageContract.TABLE_NAME + " ON " +
+                            " FROM " + MessageContract.TABLE_NAME + " LEFT OUTER JOIN " + ClientContract.TABLE_NAME + " ON " +
                             ClientContract.TABLE_NAME + "." + ClientContract.CLIENT_ID + " = " + MessageContract.TABLE_NAME + "." + MessageContract.SENDER_ID +
-                            " ORDER BY " + MessageContract.TIMESTAMP + ";";
+                            " ORDER BY " + MessageContract.TIMESTAMP + ";"; // Modified
                     cursor = database.rawQuery(query, null);
                     cursor.setNotificationUri(getContext().getContentResolver(), uri);
                     return cursor;
@@ -182,7 +182,7 @@ public class MessageDbProvider extends ContentProvider {
                         MessageContract.TABLE_NAME + "." + MessageContract.SEQNUM + " AS " + MessageContract.SEQNUM + ", " +
                         ClientContract.TABLE_NAME + "." + ClientContract.NAME + " AS " + ClientContract.NAME +  ", " +
                         MessageContract.TABLE_NAME + "." + MessageContract.SENDER_ID + " AS " + MessageContract.SENDER_ID +
-                        " FROM " + ClientContract.TABLE_NAME + " LEFT OUTER JOIN " + MessageContract.TABLE_NAME + " ON " +
+                        " FROM " + MessageContract.TABLE_NAME + " LEFT OUTER JOIN " + ClientContract.TABLE_NAME + " ON " +
                         ClientContract.TABLE_NAME + "." + ClientContract.CLIENT_ID + " = " + MessageContract.TABLE_NAME + "." + MessageContract.SENDER_ID +
                         " WHERE " + MessageContract.TABLE_NAME + "." + MessageContract.MESSAGE_ID + " = ?" +
                         " ORDER BY " + MessageContract.TIMESTAMP + ";";
@@ -203,7 +203,7 @@ public class MessageDbProvider extends ContentProvider {
                             MessageContract.TABLE_NAME + "." + MessageContract.SEQNUM + " AS " + MessageContract.SEQNUM + ", " +
                             ClientContract.TABLE_NAME + "." + ClientContract.NAME + " AS " + ClientContract.NAME +  ", " +
                             MessageContract.TABLE_NAME + "." + MessageContract.SENDER_ID + " AS " + MessageContract.SENDER_ID +
-                            " FROM " + ClientContract.TABLE_NAME + " LEFT OUTER JOIN " + MessageContract.TABLE_NAME + " ON " +
+                            " FROM " + MessageContract.TABLE_NAME + " LEFT OUTER JOIN " + ClientContract.TABLE_NAME + " ON " +
                             ClientContract.TABLE_NAME + "." + ClientContract.CLIENT_ID + " = " + MessageContract.TABLE_NAME + "." + MessageContract.SENDER_ID +
                             " WHERE " + ClientContract.TABLE_NAME + "." + ClientContract.CLIENT_ID + " = ?" +
                             " ORDER BY " + MessageContract.TIMESTAMP + ";";
