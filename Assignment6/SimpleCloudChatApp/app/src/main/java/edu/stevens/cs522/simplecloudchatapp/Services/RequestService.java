@@ -31,7 +31,6 @@ public class RequestService extends IntentService {
     // IntentService can perform, e.g. ACTION_FETCH_NEW_ITEMS
     public static final String ACTION_REGISTER = "edu.stevens.cs522.simplecloudchatapp.Services.action.REGISTER";
     public static final String ACTION_POST_MESSAGE = "edu.stevens.cs522.simplecloudchatapp.Services.action.POST_MESSAGE";
-    public static final String ACTION_REFRESH =  "edu.stevens.cs522.simplecloudchatapp.Services.action.REFRESH";
 
     private static int messageCount = 1;
     public static final int RESULT_REGISTER_OK = 0;
@@ -67,8 +66,6 @@ public class RequestService extends IntentService {
                 handleRegister(intent);
             } else if (ACTION_POST_MESSAGE.equals(intent.getAction())) {
                 handlePostMessage(intent);
-            } else if (ACTION_REFRESH.equals(intent.getAction())) {
-                handleRefresh(intent);
             } else {
                 throw new UnsupportedOperationException("Unsupported Action");
             }
@@ -119,9 +116,5 @@ public class RequestService extends IntentService {
                 }
             }
         });
-    }
-
-    private void handleRefresh(Intent intent) {
-        // TODO
     }
 }

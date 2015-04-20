@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="edu.stevens.cs522.simplecloudchatapp" >
-
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
@@ -39,23 +38,6 @@
             android:enabled="true"
             android:exported="false" >
         </provider>
-
-        <activity
-            android:name=".Activities.ClientsActivity"
-            android:label="@string/title_activity_clients"
-            android:parentActivityName=".Activities.ChatAppActivity" >
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="edu.stevens.cs522.simplecloudchatapp.Activities.ChatAppActivity" />
-        </activity>
-        <activity
-            android:name=".Activities.MessagesActivity"
-            android:label="@string/title_activity_messages"
-            android:parentActivityName=".Activities.ClientsActivity" >
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="edu.stevens.cs522.simplecloudchatapp.Activities.ClientsActivity" />
-        </activity>
     </application>
 
 </manifest>
