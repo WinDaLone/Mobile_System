@@ -16,8 +16,10 @@ import java.util.ArrayList;
 import edu.stevens.cs522.simplecloudchatapp.Activities.SettingActivity;
 import edu.stevens.cs522.simplecloudchatapp.Callbacks.IContinue;
 import edu.stevens.cs522.simplecloudchatapp.Callbacks.IEntityCreator;
+import edu.stevens.cs522.simplecloudchatapp.Contracts.ChatroomContract;
 import edu.stevens.cs522.simplecloudchatapp.Contracts.ClientContract;
 import edu.stevens.cs522.simplecloudchatapp.Contracts.MessageContract;
+import edu.stevens.cs522.simplecloudchatapp.Entities.Chatroom;
 import edu.stevens.cs522.simplecloudchatapp.Entities.Client;
 import edu.stevens.cs522.simplecloudchatapp.Entities.Message;
 import edu.stevens.cs522.simplecloudchatapp.Entities.Register;
@@ -44,6 +46,7 @@ public class RequestService extends IntentService {
     private static int messageCount = 1;
     public static final int RESULT_REGISTER_OK = 0;
     public static final int RESULT_MESSAGE_OK = 1;
+
     public static final int RESULT_SYNC_OK = 2;
     public static final int RESULT_FAILED = 3;
 
@@ -164,7 +167,7 @@ public class RequestService extends IntentService {
                         String name = values.getAsString(ClientContract.NAME);
                         for (Client client : clientEntities) {
                             if (client.name.equals(name)) { // find match
-                                Cursor cursor = getContentResolver().query(MessageContract.CONTENT_URI, new String[] {MessageContract.MESSAGE_ID, MessageContract.TIMESTAMP, MessageContract.CHATROOM, MessageContract.MESSAGE_TEXT},
+                                Cursor cursor = getContentResolver().query(MessageContract.CONTENT_URI, new String[] {MessageContract.MESSAGE_ID, MessageContract.TIMESTAMP, MessageContract.CHATROOM_FK, MessageContract.MESSAGE_TEXT},
                                         MessageContract.TIMESTAMP + "=? AND " + MessageContract.MESSAGE_TEXT + "=? AND " + MessageContract.SENDER_ID + "=?",
                                         new String[] {String.valueOf(values.getAsLong(MessageContract.TIMESTAMP)), values.getAsString(MessageContract.MESSAGE_TEXT), String.valueOf(client.id)},
                                         null);
@@ -176,12 +179,15 @@ public class RequestService extends IntentService {
                                         Log.i(TAG, "Update a message");
                                     }
                                 } else { // find no match, insert the message
-                                    String chatroom = values.getAsString(MessageContract.CHATROOM);
+                                    String chatroom_str = values.getAsString(ChatroomContract.NAME);
                                     String text = values.getAsString(MessageContract.MESSAGE_TEXT);
                                     long timestamp = values.getAsLong(MessageContract.TIMESTAMP);
                                     long seqnum = values.getAsLong(MessageContract.SEQNUM);
-                                    Message message = new Message(chatroom, text, new Timestamp(timestamp), seqnum);
-                                    manager.persistSync(message, client);
+                                    Message message = new Message(text, new Timestamp(timestamp));
+                                    message.seqnum = seqnum;
+                                    message.chatroom = chatroom_str;
+                                    Chatroom chatroom = new Chatroom(chatroom_str);
+                                    manager.persistSync(message, client, chatroom);
                                 }
                                 cursor.close();
                             }

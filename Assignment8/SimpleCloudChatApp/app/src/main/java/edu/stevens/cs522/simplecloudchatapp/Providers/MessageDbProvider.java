@@ -10,6 +10,7 @@ import android.database.sqlite.SQLiteException;
 import android.net.Uri;
 import android.util.Log;
 
+import edu.stevens.cs522.simplecloudchatapp.Contracts.ChatroomContract;
 import edu.stevens.cs522.simplecloudchatapp.Contracts.ClientContract;
 import edu.stevens.cs522.simplecloudchatapp.Contracts.MessageContract;
 import edu.stevens.cs522.simplecloudchatapp.Databases.DatabaseHelper;
@@ -49,6 +50,8 @@ public class MessageDbProvider extends ContentProvider {
     private static final int MESSAGE_SINGLE_ROW = 2;
     private static final int CLIENT_ALL_ROWS = 3;
     private static final int CLIENT_SINGLE_ROW = 4;
+    private static final int CHATROOM_ALL_ROWS = 5;
+    private static final int CHATROOM_SINGLE_ROW = 6;
 
     private static final UriMatcher uriMatcher;
     static {
@@ -57,6 +60,8 @@ public class MessageDbProvider extends ContentProvider {
         uriMatcher.addURI(AUTHORITY, MessageContract.CONTENT_ITEM_PATH, MESSAGE_SINGLE_ROW);
         uriMatcher.addURI(AUTHORITY, ClientContract.CONTENT_PATH, CLIENT_ALL_ROWS);
         uriMatcher.addURI(AUTHORITY, ClientContract.CONTENT_ITEM_PATH, CLIENT_SINGLE_ROW);
+        uriMatcher.addURI(AUTHORITY, ChatroomContract.CONTENT_PATH, CHATROOM_ALL_ROWS);
+        uriMatcher.addURI(AUTHORITY, ChatroomContract.CONTENT_ITEM_PATH, CHATROOM_SINGLE_ROW);
     }
 
     public MessageDbProvider() {
@@ -87,6 +92,14 @@ public class MessageDbProvider extends ContentProvider {
                 rowId = database.delete(ClientContract.TABLE_NAME, selection, selectionArgs);
                 getContext().getContentResolver().notifyChange(MessageContract.CONTENT_URI, null);
                 return rowId;
+            case CHATROOM_ALL_ROWS:
+                rowId = database.delete(ChatroomContract.TABLE_NAME, null, null);
+                getContext().getContentResolver().notifyChange(ChatroomContract.CONTENT_URI, null);
+                return rowId;
+            case CHATROOM_SINGLE_ROW:
+                rowId = database.delete(ChatroomContract.TABLE_NAME, selection, selectionArgs);
+                getContext().getContentResolver().notifyChange(ChatroomContract.CONTENT_URI, null);
+                return rowId;
             default:
                 throw new IllegalArgumentException("Unsupported Uri: " + uri);
         }
@@ -104,6 +117,10 @@ public class MessageDbProvider extends ContentProvider {
                 return contentType(ClientContract.CONTENT);
             case CLIENT_SINGLE_ROW:
                 return contentItemType(ClientContract.CONTENT);
+            case CHATROOM_ALL_ROWS:
+                return contentType(ChatroomContract.CONTENT);
+            case CHATROOM_SINGLE_ROW:
+                return contentItemType(ChatroomContract.CONTENT);
             default:
                 throw new IllegalArgumentException("Unsupported Uri: " + uri);
         }
@@ -130,6 +147,14 @@ public class MessageDbProvider extends ContentProvider {
                     return instanceUri;
                 }
                 throw new SQLException("Insertion failed");
+            case CHATROOM_ALL_ROWS:
+                rowId = database.insert(ChatroomContract.TABLE_NAME, null, values);
+                if (rowId > 0) {
+                    Uri instanceUri = ChatroomContract.CONTENT_URI(String.valueOf(rowId));
+                    getContext().getContentResolver().notifyChange(ChatroomContract.CONTENT_URI, null);
+                    return instanceUri;
+                }
+                throw new SQLException("Insertion failed");
             default:
                 throw new SQLException("Insertion failed");
         }
@@ -153,37 +178,62 @@ public class MessageDbProvider extends ContentProvider {
         Cursor cursor;
         String query;
         switch (uriMatcher.match(uri)) {
-            case MESSAGE_ALL_ROWS: // return all messages
-                if (projection == null) {
-                    Log.i(TAG, "Query all messages");
+            case MESSAGE_ALL_ROWS: // return all messages of one chatroom
+                if (selectionArgs != null && projection == null) {
+                    Log.i(TAG, "Query all messages of chatroom: " + selectionArgs[0]);
                     query = "SELECT " + MessageContract.TABLE_NAME + "." + MessageContract.MESSAGE_ID + " AS " + MessageContract.MESSAGE_ID + ", " +
-                            MessageContract.TABLE_NAME + "." + MessageContract.CHATROOM + " AS " + MessageContract.CHATROOM + ", " +
                             MessageContract.TABLE_NAME + "." + MessageContract.MESSAGE_TEXT + " AS " + MessageContract.MESSAGE_TEXT + ", " +
                             MessageContract.TABLE_NAME + "." + MessageContract.TIMESTAMP + " AS " + MessageContract.TIMESTAMP + ", " +
                             MessageContract.TABLE_NAME + "." + MessageContract.SEQNUM + " AS " + MessageContract.SEQNUM + ", " +
                             ClientContract.TABLE_NAME + "." + ClientContract.NAME + " AS " + ClientContract.NAME + ", " +
                             MessageContract.TABLE_NAME + "." + MessageContract.SENDER_ID + " AS " + MessageContract.SENDER_ID +
+                            ChatroomContract.TABLE_NAME + "." + ChatroomContract.NAME + " AS " + ClientContract.NAME + ", " +
+                            MessageContract.TABLE_NAME + "." + MessageContract.CHATROOM_FK + " AS " + MessageContract.CHATROOM_FK +
                             " FROM " + MessageContract.TABLE_NAME + " LEFT OUTER JOIN " + ClientContract.TABLE_NAME + " ON " +
                             ClientContract.TABLE_NAME + "." + ClientContract.CLIENT_ID + " = " + MessageContract.TABLE_NAME + "." + MessageContract.SENDER_ID +
-                            " ORDER BY " + MessageContract.TIMESTAMP + ";"; // Modified
-                    cursor = database.rawQuery(query, null);
+                            " LEFT OUTER JOIN " + ChatroomContract.TABLE_NAME + " ON " +
+                            ChatroomContract.TABLE_NAME + "." + ChatroomContract.ID + " = " + MessageContract.TABLE_NAME + "." + MessageContract.CHATROOM_FK +
+                            " WHERE " + ChatroomContract.TABLE_NAME + "." + ChatroomContract.NAME + " = ?" +
+                            " ORDER BY " + MessageContract.TIMESTAMP + ";";
+                    cursor = database.rawQuery(query, selectionArgs);
                     cursor.setNotificationUri(getContext().getContentResolver(), uri);
+                    return cursor;
+                } else if (projection == null && selectionArgs == null) { // query all messages to sync
+                    Log.i(TAG, "Query all messages to sync");
+                    query = "SELECT " + MessageContract.TABLE_NAME + "." + MessageContract.MESSAGE_ID + " AS " + MessageContract.MESSAGE_ID + ", " +
+                            MessageContract.TABLE_NAME + "." + MessageContract.MESSAGE_TEXT + " AS " + MessageContract.MESSAGE_TEXT + ", " +
+                            MessageContract.TABLE_NAME + "." + MessageContract.TIMESTAMP + " AS " + MessageContract.TIMESTAMP + ", " +
+                            MessageContract.TABLE_NAME + "." + MessageContract.SEQNUM + " AS " + MessageContract.SEQNUM + ", " +
+                            ClientContract.TABLE_NAME + "." + ClientContract.NAME + " AS " + ClientContract.NAME + ", " +
+                            MessageContract.TABLE_NAME + "." + MessageContract.SENDER_ID + " AS " + MessageContract.SENDER_ID +
+                            ChatroomContract.TABLE_NAME + "." + ChatroomContract.NAME + " AS " + ClientContract.NAME + ", " +
+                            MessageContract.TABLE_NAME + "." + MessageContract.CHATROOM_FK + " AS " + MessageContract.CHATROOM_FK +
+                            " FROM " + MessageContract.TABLE_NAME + " LEFT OUTER JOIN " + ClientContract.TABLE_NAME + " ON " +
+                            ClientContract.TABLE_NAME + "." + ClientContract.CLIENT_ID + " = " + MessageContract.TABLE_NAME + "." + MessageContract.SENDER_ID +
+                            " LEFT OUTER JOIN " + ChatroomContract.TABLE_NAME + " ON " +
+                            ChatroomContract.TABLE_NAME + "." + ChatroomContract.ID + " = " + MessageContract.TABLE_NAME + "." + MessageContract.CHATROOM_FK +
+                            " ORDER BY " + MessageContract.TIMESTAMP + ";";
+                    cursor = database.rawQuery(query, null);
                     return cursor;
                 } else {
                     Log.i(TAG, "Query a particular message");
-                    return database.query(MessageContract.TABLE_NAME, projection, selection, selectionArgs, null, null, sortOrder);
+                    cursor = database.query(MessageContract.TABLE_NAME, projection, selection, selectionArgs, null, null, null);
+                    return cursor;
                 }
-            case MESSAGE_SINGLE_ROW: // return a message
-                Log.i(TAG, "Query a message by _id");
-                query = "SELECT " + MessageContract.TABLE_NAME + "." + MessageContract.MESSAGE_ID + " AS " + MessageContract.MESSAGE_ID +  ", " +
-                        MessageContract.TABLE_NAME + "." + MessageContract.CHATROOM + " AS " + MessageContract.CHATROOM + ", " +
+            case MESSAGE_SINGLE_ROW: // return a message by id
+                Log.i(TAG, "Query a message by _id and chatroom name");
+                query = "SELECT " + MessageContract.TABLE_NAME + "." + MessageContract.MESSAGE_ID + " AS " + MessageContract.MESSAGE_ID + ", " +
                         MessageContract.TABLE_NAME + "." + MessageContract.MESSAGE_TEXT + " AS " + MessageContract.MESSAGE_TEXT + ", " +
                         MessageContract.TABLE_NAME + "." + MessageContract.TIMESTAMP + " AS " + MessageContract.TIMESTAMP + ", " +
                         MessageContract.TABLE_NAME + "." + MessageContract.SEQNUM + " AS " + MessageContract.SEQNUM + ", " +
-                        ClientContract.TABLE_NAME + "." + ClientContract.NAME + " AS " + ClientContract.NAME +  ", " +
+                        ClientContract.TABLE_NAME + "." + ClientContract.NAME + " AS " + ClientContract.NAME + ", " +
                         MessageContract.TABLE_NAME + "." + MessageContract.SENDER_ID + " AS " + MessageContract.SENDER_ID +
+                        ChatroomContract.TABLE_NAME + "." + ChatroomContract.NAME + " AS " + ClientContract.NAME + ", " +
+                        MessageContract.TABLE_NAME + "." + MessageContract.CHATROOM_FK + " AS " + MessageContract.CHATROOM_FK +
                         " FROM " + MessageContract.TABLE_NAME + " LEFT OUTER JOIN " + ClientContract.TABLE_NAME + " ON " +
                         ClientContract.TABLE_NAME + "." + ClientContract.CLIENT_ID + " = " + MessageContract.TABLE_NAME + "." + MessageContract.SENDER_ID +
+                        " LEFT OUTER JOIN " + ChatroomContract.TABLE_NAME + " ON " +
+                        ChatroomContract.TABLE_NAME + "." + ChatroomContract.ID + " = " + MessageContract.TABLE_NAME + "." + MessageContract.CHATROOM_FK +
                         " WHERE " + MessageContract.TABLE_NAME + "." + MessageContract.MESSAGE_ID + " = ?" +
                         " ORDER BY " + MessageContract.TIMESTAMP + ";";
                 return database.rawQuery(query, new String[] {String.valueOf(MessageContract.getMessageId(uri))});
@@ -197,14 +247,17 @@ public class MessageDbProvider extends ContentProvider {
                 if (projection == null) {
                     Log.i(TAG, "Query all messages from a client");
                     query = "SELECT " + MessageContract.TABLE_NAME + "." + MessageContract.MESSAGE_ID + " AS " + MessageContract.MESSAGE_ID + ", " +
-                            MessageContract.TABLE_NAME + "." + MessageContract.CHATROOM + " AS " + MessageContract.CHATROOM + ", " +
                             MessageContract.TABLE_NAME + "." + MessageContract.MESSAGE_TEXT + " AS " + MessageContract.MESSAGE_TEXT + ", " +
                             MessageContract.TABLE_NAME + "." + MessageContract.TIMESTAMP + " AS " + MessageContract.TIMESTAMP + ", " +
                             MessageContract.TABLE_NAME + "." + MessageContract.SEQNUM + " AS " + MessageContract.SEQNUM + ", " +
-                            ClientContract.TABLE_NAME + "." + ClientContract.NAME + " AS " + ClientContract.NAME +  ", " +
+                            ClientContract.TABLE_NAME + "." + ClientContract.NAME + " AS " + ClientContract.NAME + ", " +
                             MessageContract.TABLE_NAME + "." + MessageContract.SENDER_ID + " AS " + MessageContract.SENDER_ID +
+                            ChatroomContract.TABLE_NAME + "." + ChatroomContract.NAME + " AS " + ClientContract.NAME + ", " +
+                            MessageContract.TABLE_NAME + "." + MessageContract.CHATROOM_FK + " AS " + MessageContract.CHATROOM_FK +
                             " FROM " + MessageContract.TABLE_NAME + " LEFT OUTER JOIN " + ClientContract.TABLE_NAME + " ON " +
                             ClientContract.TABLE_NAME + "." + ClientContract.CLIENT_ID + " = " + MessageContract.TABLE_NAME + "." + MessageContract.SENDER_ID +
+                            " LEFT OUTER JOIN " + ChatroomContract.TABLE_NAME + " ON " +
+                            ChatroomContract.TABLE_NAME + "." + ChatroomContract.ID + " = " + MessageContract.TABLE_NAME + "." + MessageContract.CHATROOM_FK +
                             " WHERE " + ClientContract.TABLE_NAME + "." + ClientContract.CLIENT_ID + " = ?" +
                             " ORDER BY " + MessageContract.TIMESTAMP + ";";
                     cursor = database.rawQuery(query, new String[]{String.valueOf(ClientContract.getClientId(uri))});
@@ -216,6 +269,18 @@ public class MessageDbProvider extends ContentProvider {
                     selectionArgs = new String[] {String.valueOf(ClientContract.getClientId(uri))};
                     return database.query(ClientContract.TABLE_NAME, projection, selection, selectionArgs, null, null, null);
                 }
+            case CHATROOM_ALL_ROWS: // return all chatrooms
+                Log.i(TAG, "Query all chatrooms");
+                projection = new String[] {ChatroomContract.ID, ChatroomContract.NAME};
+                cursor = database.query(ChatroomContract.TABLE_NAME, projection, null, null, null, null, null);
+                cursor.setNotificationUri(getContext().getContentResolver(), uri);
+                return cursor;
+            case CHATROOM_SINGLE_ROW: // return one single chatroom
+                Log.i(TAG, "Query a single chatroom");
+                projection = new String[] {ChatroomContract.ID, ChatroomContract.NAME};
+                selection = ChatroomContract.ID + "=?";
+                selectionArgs = new String[] {String.valueOf(ChatroomContract.getId(uri))};
+                return database.query(ChatroomContract.TABLE_NAME, projection, selection, selectionArgs, null, null, null);
             default:
                 throw new IllegalArgumentException("Unknown Uri: " + uri);
         }
@@ -245,6 +310,16 @@ public class MessageDbProvider extends ContentProvider {
                 selection = ClientContract.CLIENT_ID + "=?";
                 selectionArgs = new String[] {String.valueOf(MessageContract.getMessageId(uri))};
                 rowId = database.update(MessageContract.TABLE_NAME, values, selection, selectionArgs);
+                return rowId;
+            case CHATROOM_ALL_ROWS:
+                rowId = database.update(ChatroomContract.TABLE_NAME, values, null, null);
+                getContext().getContentResolver().notifyChange(uri, null);
+                return rowId;
+            case CHATROOM_SINGLE_ROW:
+                selection = ChatroomContract.ID + "=?";
+                selectionArgs = new String[] {String.valueOf(ChatroomContract.getId(uri))};
+                rowId = database.update(ChatroomContract.TABLE_NAME, values, selection, selectionArgs);
+                getContext().getContentResolver().notifyChange(ChatroomContract.CONTENT_URI, null);
                 return rowId;
             default:
                 throw new IllegalArgumentException("Unsupported Uri: " + uri);

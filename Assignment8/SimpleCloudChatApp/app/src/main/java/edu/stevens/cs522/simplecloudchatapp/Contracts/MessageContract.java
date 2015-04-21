@@ -13,11 +13,11 @@ import edu.stevens.cs522.simplecloudchatapp.Providers.MessageDbProvider;
  */
 public class MessageContract {
     public static final String MESSAGE_ID = "_id";
-    public static final String CHATROOM = "chatroom";
+    public static final String CHATROOM_FK = "chatroom_fk"; // CHATROOM_FK
     public static final String MESSAGE_TEXT = "text";
     public static final String TIMESTAMP = "timestamp";
     public static final String SEQNUM = "seqnum";
-    public static final String SENDER_ID = "senderID";
+    public static final String SENDER_ID = "senderID"; // SENDER_FK
 
     public static final String TABLE_NAME = "Messages";
     public static final String CONTENT = "Message";
@@ -43,12 +43,12 @@ public class MessageContract {
         values.put(MESSAGE_ID, id);
     }
 
-    public static String getChatroom(Cursor cursor) {
-        return cursor.getString(cursor.getColumnIndexOrThrow(CHATROOM));
+    public static long getChatroomId(Cursor cursor) {
+        return cursor.getLong(cursor.getColumnIndexOrThrow(CHATROOM_FK));
     }
 
-    public static void setChatroom(ContentValues values, String chatroom) {
-        values.put(CHATROOM, chatroom);
+    public static void setChatroomId(ContentValues values, long chatroom_fk) {
+        values.put(CHATROOM_FK, chatroom_fk);
     }
 
     public static String getMessageText(Cursor cursor) {

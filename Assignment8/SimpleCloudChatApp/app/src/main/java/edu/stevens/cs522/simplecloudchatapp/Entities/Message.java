@@ -6,18 +6,21 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import java.sql.Timestamp;
 
+import edu.stevens.cs522.simplecloudchatapp.Contracts.ChatroomContract;
 import edu.stevens.cs522.simplecloudchatapp.Contracts.MessageContract;
 
 /**
  * Created by wyf920621 on 3/12/15.
  */
 public class Message implements Parcelable{
+    public long chatroom_fk;
     public String chatroom;
     public long messageID;
     public String messageText;
     public Timestamp timestamp;
     public long seqnum;
     public long senderID;
+
 
     public static final Creator<Message> CREATOR = new Creator<Message>() {
         @Override
@@ -32,6 +35,7 @@ public class Message implements Parcelable{
     };
 
     public Message() {
+        this.chatroom_fk = 0;
         this.chatroom = "";
         this.messageID = 0;
         this.messageText = "";
@@ -40,18 +44,9 @@ public class Message implements Parcelable{
         this.senderID = 0;
     }
 
-
-    public Message(String chatroom, String messageText, Timestamp timestamp, long seqnum) {
-        this.chatroom = chatroom;
-        this.messageID = 0;
-        this.messageText = messageText;
-        this.timestamp = timestamp;
-        this.seqnum = seqnum;
-        this.senderID = 0;
-    }
-
-    public Message(String chatroom, String messageText, Timestamp timestamp) {
-        this.chatroom = chatroom;
+    public Message(String messageText, Timestamp timestamp) {
+        this.chatroom_fk = 0;
+        this.chatroom = "";
         this.messageID = 0;
         this.messageText = messageText;
         this.timestamp = timestamp;
@@ -60,6 +55,7 @@ public class Message implements Parcelable{
     }
 
     public Message(Parcel parcel) {
+        this.chatroom_fk = parcel.readLong();
         this.chatroom = parcel.readString();
         this.messageID = parcel.readLong();
         this.messageText = parcel.readString();
@@ -69,7 +65,8 @@ public class Message implements Parcelable{
     }
 
     public Message(Cursor cursor) {
-        this.chatroom = MessageContract.getChatroom(cursor);
+        this.chatroom_fk = MessageContract.getChatroomId(cursor);
+        this.chatroom = ChatroomContract.getName(cursor);
         this.messageID = MessageContract.getMessageId(cursor);
         this.messageText = MessageContract.getMessageText(cursor);
         this.timestamp = MessageContract.getTimestamp(cursor);
@@ -77,8 +74,9 @@ public class Message implements Parcelable{
         this.senderID = MessageContract.getSenderId(cursor);
     }
 
-    public void writeToProvider(ContentValues values, long senderID) {
-        MessageContract.setChatroom(values, chatroom);
+    public void writeToProvider(ContentValues values, long senderID, long chatroom_fk) {
+        this.chatroom_fk = chatroom_fk;
+        MessageContract.setChatroomId(values, chatroom_fk);
         MessageContract.setMessageText(values, messageText);
         MessageContract.setTimestamp(values, timestamp);
         MessageContract.setSeqnum(values, seqnum);
@@ -93,6 +91,7 @@ public class Message implements Parcelable{
 
     @Override
     public void writeToParcel(Parcel parcel, int flags) {
+        parcel.writeLong(chatroom_fk);
         parcel.writeString(chatroom);
         parcel.writeLong(messageID);
         parcel.writeString(messageText);

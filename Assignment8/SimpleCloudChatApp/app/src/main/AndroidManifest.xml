@@ -56,6 +56,14 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="edu.stevens.cs522.simplecloudchatapp.Activities.ClientsActivity" />
         </activity>
+        <activity
+            android:name=".Activities.MainChatActivity"
+            android:label="@string/title_activity_main_chat"
+            android:parentActivityName=".Activities.ChatAppActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="edu.stevens.cs522.simplecloudchatapp.Activities.ChatAppActivity" />
+        </activity>
     </application>
 
 </manifest>

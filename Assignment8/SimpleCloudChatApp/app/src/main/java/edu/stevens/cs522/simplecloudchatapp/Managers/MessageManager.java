@@ -9,8 +9,10 @@ import edu.stevens.cs522.simplecloudchatapp.Callbacks.IContinue;
 import edu.stevens.cs522.simplecloudchatapp.Callbacks.IEntityCreator;
 import edu.stevens.cs522.simplecloudchatapp.Callbacks.IQueryListener;
 import edu.stevens.cs522.simplecloudchatapp.Callbacks.ISimpleQueryListener;
+import edu.stevens.cs522.simplecloudchatapp.Contracts.ChatroomContract;
 import edu.stevens.cs522.simplecloudchatapp.Contracts.ClientContract;
 import edu.stevens.cs522.simplecloudchatapp.Contracts.MessageContract;
+import edu.stevens.cs522.simplecloudchatapp.Entities.Chatroom;
 import edu.stevens.cs522.simplecloudchatapp.Entities.Client;
 import edu.stevens.cs522.simplecloudchatapp.Entities.Message;
 
@@ -27,25 +29,38 @@ public class MessageManager extends Manager<Message> {
                 null, null, null);
         if (searchClients.moveToFirst()) {
             searchClients.close();
-            return;
         } else {
             ContentValues values = new ContentValues();
             client.writeToProvider(values);
             Uri instanceUri = getSyncResolver().insert(ClientContract.CONTENT_URI, values);
             client.id = ClientContract.getClientId(instanceUri);
+            searchClients.close();
         }
     }
 
-    public void persistSync(Message message, Client client) {
+    public void persistSync(Chatroom chatroom) {
+        Cursor searchChatrooms = getSyncResolver().query(ChatroomContract.CONTENT_URI(String.valueOf(chatroom.id)), null, null, null, null);
+        if (searchChatrooms.moveToFirst()) {
+            searchChatrooms.close();
+        } else {
+            ContentValues values = new ContentValues();
+            chatroom.writeToProvider(values);
+            Uri instanceUri = getSyncResolver().insert(ChatroomContract.CONTENT_URI, values);
+            chatroom.id = ChatroomContract.getId(instanceUri);
+            searchChatrooms.close();
+        }
+    }
+
+    public void persistSync(Message message, Client client, Chatroom chatroom) {
         ContentValues values = new ContentValues();
         Cursor searchClients = getSyncResolver().query(ClientContract.CONTENT_URI(String.valueOf(client.id)), new String[] {ClientContract.CLIENT_ID, ClientContract.NAME, ClientContract.UUID},
                 null, null, null, null);
         if (searchClients.moveToFirst()) {
             client.id = ClientContract.getClientId(searchClients);
         }
-        searchClients.close();
+        searchClients.close(); // get Client id
         if (client.id != 0) {
-            message.writeToProvider(values, client.id);
+            message.writeToProvider(values, client.id, chatroom.id);
             Uri uri = getSyncResolver().insert(MessageContract.CONTENT_URI, values);
             message.messageID = MessageContract.getMessageId(uri);
         } else {
@@ -53,47 +68,102 @@ public class MessageManager extends Manager<Message> {
             Uri clientUri = getSyncResolver().insert(ClientContract.CONTENT_URI, values);
             client.id = ClientContract.getClientId(clientUri);
             values.clear();
-            message.writeToProvider(values, client.id);
+            message.writeToProvider(values, client.id, chatroom.id);
             Uri uri = getSyncResolver().insert(MessageContract.CONTENT_URI, values);
             message.messageID = MessageContract.getMessageId(uri);
         }
         getSyncResolver().notifyChange(MessageContract.CONTENT_URI, null);
     }
 
-    public void persistAsync(final Message message, final Client client) {
-        getAsyncResolver().queryAsync(ClientContract.CONTENT_URI(String.valueOf(client.id)), new String[] {ClientContract.CLIENT_ID, ClientContract.NAME, ClientContract.UUID},
-                null, null, null, new IContinue<Cursor>() {
+    public void persistAsync(final Message message, final Client client, final Chatroom chatroom) {
+        getAsyncResolver().queryAsync(ChatroomContract.CONTENT_URI(String.valueOf(chatroom.id)), null, null, null, null, new IContinue<Cursor>() {
             @Override
             public void kontinue(Cursor value) {
-                if (value.moveToFirst()) { // search client
-                    client.id = ClientContract.getClientId(value);
-                }
-                value.close();
-                if (client.id != 0) {
-                    ContentValues values = new ContentValues();
-                    message.senderID = client.id;
-                    message.writeToProvider(values, client.id);
-                    getAsyncResolver().insertAsync(MessageContract.CONTENT_URI, values, new IContinue<Uri>() {
-                        @Override
-                        public void kontinue(Uri value) {
-                            message.messageID = MessageContract.getMessageId(value);
-                        }
-                    });
-                } else {
-                    ContentValues values = new ContentValues();
-                    client.writeToProvider(values);
-                    getAsyncResolver().insertAsync(ClientContract.CONTENT_URI, values, new IContinue<Uri>() {
-                        @Override
-                        public void kontinue(Uri value) {
-                            ContentValues messageValues = new ContentValues();
-                            client.id = ClientContract.getClientId(value);
-                            message.writeToProvider(messageValues, ClientContract.getClientId(value));
-                            getAsyncResolver().insertAsync(MessageContract.CONTENT_URI, messageValues, new IContinue<Uri>() {
+                if (value.moveToFirst()) { // Chatroom exists
+                    value.close();
+                    getAsyncResolver().queryAsync(ClientContract.CONTENT_URI(String.valueOf(client.id)), new String[]{ClientContract.CLIENT_ID, ClientContract.NAME, ClientContract.UUID},
+                            null, null, null, new IContinue<Cursor>() {
                                 @Override
-                                public void kontinue(Uri value) {
-                                    message.messageID = MessageContract.getMessageId(value);
+                                public void kontinue(Cursor value) {
+                                    if (value.moveToFirst()) { // search client
+                                        client.id = ClientContract.getClientId(value);
+                                    }
+                                    value.close();
+                                    if (client.id != 0) { // client exists
+                                        ContentValues values = new ContentValues();
+                                        message.senderID = client.id;
+                                        message.writeToProvider(values, client.id, chatroom.id);
+                                        getAsyncResolver().insertAsync(MessageContract.CONTENT_URI, values, new IContinue<Uri>() {
+                                            @Override
+                                            public void kontinue(Uri value) {
+                                                message.messageID = MessageContract.getMessageId(value);
+                                            }
+                                        });
+                                    } else { // client not exists
+                                        ContentValues values = new ContentValues();
+                                        client.writeToProvider(values);
+                                        getAsyncResolver().insertAsync(ClientContract.CONTENT_URI, values, new IContinue<Uri>() {
+                                            @Override
+                                            public void kontinue(Uri value) {
+                                                ContentValues messageValues = new ContentValues();
+                                                client.id = ClientContract.getClientId(value);
+                                                message.writeToProvider(messageValues, ClientContract.getClientId(value), chatroom.id);
+                                                getAsyncResolver().insertAsync(MessageContract.CONTENT_URI, messageValues, new IContinue<Uri>() {
+                                                    @Override
+                                                    public void kontinue(Uri value) {
+                                                        message.messageID = MessageContract.getMessageId(value);
+                                                    }
+                                                });
+                                            }
+                                        });
+                                    }
                                 }
                             });
+                } else { // Chatroom not exist
+                    ContentValues values = new ContentValues();
+                    chatroom.writeToProvider(values);
+                    getAsyncResolver().insertAsync(ChatroomContract.CONTENT_URI, values, new IContinue<Uri>() {
+                        @Override
+                        public void kontinue(Uri value) {
+                            chatroom.id = ChatroomContract.getId(value);
+                            getAsyncResolver().queryAsync(ClientContract.CONTENT_URI(String.valueOf(client.id)), new String[]{ClientContract.CLIENT_ID, ClientContract.NAME, ClientContract.UUID},
+                                    null, null, null, new IContinue<Cursor>() {
+                                        @Override
+                                        public void kontinue(Cursor value) {
+                                            if (value.moveToFirst()) { // search client
+                                                client.id = ClientContract.getClientId(value);
+                                            }
+                                            value.close();
+                                            if (client.id != 0) { // client exists
+                                                ContentValues values = new ContentValues();
+                                                message.senderID = client.id;
+                                                message.writeToProvider(values, client.id, chatroom.id);
+                                                getAsyncResolver().insertAsync(MessageContract.CONTENT_URI, values, new IContinue<Uri>() {
+                                                    @Override
+                                                    public void kontinue(Uri value) {
+                                                        message.messageID = MessageContract.getMessageId(value);
+                                                    }
+                                                });
+                                            } else { // client not exists
+                                                ContentValues values = new ContentValues();
+                                                client.writeToProvider(values);
+                                                getAsyncResolver().insertAsync(ClientContract.CONTENT_URI, values, new IContinue<Uri>() {
+                                                    @Override
+                                                    public void kontinue(Uri value) {
+                                                        ContentValues messageValues = new ContentValues();
+                                                        client.id = ClientContract.getClientId(value);
+                                                        message.writeToProvider(messageValues, ClientContract.getClientId(value), chatroom.id);
+                                                        getAsyncResolver().insertAsync(MessageContract.CONTENT_URI, messageValues, new IContinue<Uri>() {
+                                                            @Override
+                                                            public void kontinue(Uri value) {
+                                                                message.messageID = MessageContract.getMessageId(value);
+                                                            }
+                                                        });
+                                                    }
+                                                });
+                                            }
+                                        }
+                                    });
                         }
                     });
                 }
@@ -102,17 +172,17 @@ public class MessageManager extends Manager<Message> {
         getSyncResolver().notifyChange(MessageContract.CONTENT_URI, null);
     }
 
-    public void UpdateAsync(Message message, ContentValues values) {
-        getAsyncResolver().updateAsync(MessageContract.CONTENT_URI(String.valueOf(message.messageID)), values, null, null);
+
+    // Query messages of a chatroom
+    public void QueryAsync(Uri uri, String[] selectionArgs, IQueryListener<Message> listener) {
+        this.executeQuery(uri, null, null, selectionArgs, listener);
     }
 
-    public void UpdateSync(Message message, ContentValues values) {
-        getSyncResolver().update(MessageContract.CONTENT_URI(String.valueOf(message.messageID)), values, null, null);
-    }
-
+    // Query all messages
     public void QueryAsync(Uri uri, IQueryListener<Message> listener) {
         this.executeQuery(uri, listener);
     }
+
 
     public void QueryDetail(Uri uri, ISimpleQueryListener<Message> listener) {
         this.executeSimpleQuery(uri, listener);

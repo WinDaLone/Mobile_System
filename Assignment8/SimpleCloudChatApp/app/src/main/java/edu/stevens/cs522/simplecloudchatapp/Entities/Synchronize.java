@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import edu.stevens.cs522.simplecloudchatapp.Contracts.ChatroomContract;
 import edu.stevens.cs522.simplecloudchatapp.Contracts.MessageContract;
 
 /**
@@ -101,7 +102,7 @@ public class Synchronize extends Request{
         writer.beginArray();
         for (int i = 0; i < messages.size(); i++) {
             writer.beginObject();
-            writer.name(MessageContract.CHATROOM);
+            writer.name(ChatroomContract.NAME);
             writer.value(messages.get(i).chatroom);
             writer.name(MessageContract.TIMESTAMP);
             writer.value(messages.get(i).timestamp.getTime());
