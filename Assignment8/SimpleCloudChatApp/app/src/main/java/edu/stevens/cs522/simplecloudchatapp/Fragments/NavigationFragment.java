@@ -4,8 +4,10 @@ package edu.stevens.cs522.simplecloudchatapp.Fragments;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -46,28 +48,29 @@ public class NavigationFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_navigation, container, false);
-    }
-
-    @Override
-    public void onViewCreated(View view, Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
+        View rootView = inflater.inflate(R.layout.fragment_navigation, container, false);
         mainFrame = getActivity().findViewById(R.id.main_chatroom_container);
-        final boolean MultiPane = mainFrame != null && mainFrame.getVisibility() == View.VISIBLE;
-
+        final boolean MultiPane = getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
+        if (MultiPane) {
+            Log.i(TAG, "Land mode");
+        } else {
+            Log.i(TAG, "Port mode");
+        }
         manager = new ChatroomManager(getActivity(), new IEntityCreator<Chatroom>() {
             @Override
             public Chatroom create(Cursor cursor) {
                 return new Chatroom(cursor);
             }
         }, NAVIGATION_FRAGMENT_LOADER_ID);
-        listView = (ListView)view.findViewById(R.id.navigation_list);
+        listView = (ListView)rootView.findViewById(R.id.navigation_list);
         String[] from = new String[] {ChatroomContract.NAME};
-        int[] to = new int[] {R.id.navigation_row};
+        int[] to = new int[] {R.id.navigation_row_item};
         adapter = new SimpleCursorAdapter(getActivity(), R.layout.navigation_row, null, from, to, 0);
+        listView.setAdapter(adapter);
         manager.QueryAsync(ChatroomContract.CONTENT_URI, new IQueryListener<Chatroom>() {
             @Override
             public void handleResults(TypedCursor<Chatroom> cursor) {
+                Log.i(TAG, "Swap cursor");
                 adapter.swapCursor(cursor.getCursor());
             }
 
@@ -89,17 +92,20 @@ public class NavigationFragment extends Fragment {
                     intent.putExtra(MainChatActivity.TAG, chatroom);
                     startActivity(intent);
                 } else {
+                    FragmentTransaction ft;
                     Fragment fragment = new MainChatFragment();
                     Bundle args = new Bundle();
                     args.putParcelable(MainChatFragment.TAG, chatroom);
                     fragment.setArguments(args);
-                    FragmentTransaction ft = getFragmentManager().beginTransaction();
+
+                    ft = getFragmentManager().beginTransaction();
                     ft.replace(R.id.main_chatroom_container, fragment);
                     ft.commit();
                     getFragmentManager().executePendingTransactions();
                 }
             }
         });
-
+        return rootView;
     }
+
 }

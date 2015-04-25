@@ -5,5 +5,9 @@
     <TextView
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/navigation_row"/>
+        android:id="@+id/navigation_row_item"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:textColor="#fc0f0a0b" />
 </LinearLayout>

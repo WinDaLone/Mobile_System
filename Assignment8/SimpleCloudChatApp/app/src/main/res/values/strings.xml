@@ -1,19 +1,18 @@
 <resources>
-    <string name="app_name">Yunfeng Wei\'s SimpleCloudChatApp</string>
+    <string name="app_name">Yunfeng Wei\'s CloudChatApp</string>
     <string name="send_label">SEND</string>
     <string name="back_label">BACK</string>
-    <string name="action_settings">Settings</string>
+    <string name="action_settings">Register</string>
     <string name="message_edit_text">Type your message here.</string>
 
-    <string name="title_activity_setting">SettingActivity</string>
-    <string name="title_activity_clients">ClientsActivity</string>
+    <string name="title_activity_setting">Yunfeng Wei\'s CloudChatApp</string>
+    <string name="title_activity_clients">Yunfeng Wei\'s CloudChatApp</string>
     <string name="clients">Show Clients</string>
     <string name="client_message">Show messages</string>
-    <string name="hello_world">Hello world!</string>
-    <string name="title_activity_messages">MessagesActivity</string>
-
+    <string name="warning_message">Can\'t send message, please register and sign in first!</string>
+    <string name="title_activity_messages">Yunfeng Wei\'s CloudChatApp</string>
+    <string name="create_chatroom">CREATE NEW CHATROOM</string>
 <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
-    <string name="title_activity_main_chat">MainChatActivity</string>
+    <string name="title_activity_main_chat">Yunfeng Wei\'s CloudChatApp</string>
 
 </resources>

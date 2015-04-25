@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.util.ArrayList;
 
+import edu.stevens.cs522.simplecloudchatapp.Contracts.ChatroomContract;
 import edu.stevens.cs522.simplecloudchatapp.Contracts.ClientContract;
 import edu.stevens.cs522.simplecloudchatapp.Contracts.MessageContract;
 
@@ -225,7 +226,7 @@ public abstract class Response implements Parcelable {
 
         @Override
         protected void parseResponse(JsonReader reader) throws IOException {
-            messageValues = new ArrayList<ContentValues>();
+            messageValues = new ArrayList<>();
             client = new ArrayList<>();
             reader.beginObject();
             matchName("clients", reader);
@@ -252,8 +253,8 @@ public abstract class Response implements Parcelable {
                         reader.beginObject();
                         while (reader.peek() != JsonToken.END_OBJECT) {
                             String label = reader.nextName();
-                            if (label.equals(MessageContract.CHATROOM)) {
-                                values.put(MessageContract.CHATROOM, reader.nextString());
+                            if (label.equals(ChatroomContract.NAME)) {
+                                values.put(ChatroomContract.NAME, reader.nextString());
                             }
                             else if (label.equals(MessageContract.TIMESTAMP)) {
                                 long timestampValue = reader.nextLong();

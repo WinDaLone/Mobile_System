@@ -11,7 +11,7 @@ import edu.stevens.cs522.simplecloudchatapp.Providers.MessageDbProvider;
  */
 public class ChatroomContract {
     public static final String ID = "_id";
-    public static final String NAME = "name";
+    public static final String NAME = "chatroom";
 
     public static final String TABLE_NAME = "Chatrooms";
     public static final String CONTENT = "Chatroom";

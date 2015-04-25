@@ -22,7 +22,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     MessageContract.SENDER_ID + " INTEGER NOT NULL, " +
                     MessageContract.CHATROOM_FK + " INTEGER NOT NULL, " +
                     "FOREIGN KEY (" + MessageContract.SENDER_ID + ") REFERENCES " + ClientContract.TABLE_NAME +
-                    "(" + ClientContract.CLIENT_ID + ") ON DELETE CASCADE), " +
+                    "(" + ClientContract.CLIENT_ID + ") ON DELETE CASCADE, " +
                     "FOREIGN KEY (" + MessageContract.CHATROOM_FK + ") REFERENCES " + ChatroomContract.TABLE_NAME +
                     "(" + ChatroomContract.ID + ") ON DELETE CASCADE);";
 

@@ -5,5 +5,7 @@
         android:orderInCategory="100" app:showAsAction="ifRoom" />
     <item android:id="@+id/clients" android:title="@string/clients"
         android:orderInCategory="100" app:showAsAction="ifRoom" />
+    <item android:id="@+id/create_chatroom" android:title="@string/create_chatroom"
+        android:orderInCategory="100" app:showAsAction="ifRoom" />
 </menu>
 

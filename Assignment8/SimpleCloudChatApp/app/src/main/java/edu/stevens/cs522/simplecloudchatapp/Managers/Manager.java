@@ -30,6 +30,10 @@ public abstract class Manager<T> {
         this.tag = this.getClass().getCanonicalName();
     }
 
+    protected Context getContext() {
+        return context;
+    }
+
     protected ContentResolver getSyncResolver() {
         if (syncResolver == null)
             syncResolver = context.getContentResolver();

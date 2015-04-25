@@ -186,8 +186,8 @@ public class MessageDbProvider extends ContentProvider {
                             MessageContract.TABLE_NAME + "." + MessageContract.TIMESTAMP + " AS " + MessageContract.TIMESTAMP + ", " +
                             MessageContract.TABLE_NAME + "." + MessageContract.SEQNUM + " AS " + MessageContract.SEQNUM + ", " +
                             ClientContract.TABLE_NAME + "." + ClientContract.NAME + " AS " + ClientContract.NAME + ", " +
-                            MessageContract.TABLE_NAME + "." + MessageContract.SENDER_ID + " AS " + MessageContract.SENDER_ID +
-                            ChatroomContract.TABLE_NAME + "." + ChatroomContract.NAME + " AS " + ClientContract.NAME + ", " +
+                            MessageContract.TABLE_NAME + "." + MessageContract.SENDER_ID + " AS " + MessageContract.SENDER_ID + ", " +
+                            ChatroomContract.TABLE_NAME + "." + ChatroomContract.NAME + " AS " + ChatroomContract.NAME + ", " +
                             MessageContract.TABLE_NAME + "." + MessageContract.CHATROOM_FK + " AS " + MessageContract.CHATROOM_FK +
                             " FROM " + MessageContract.TABLE_NAME + " LEFT OUTER JOIN " + ClientContract.TABLE_NAME + " ON " +
                             ClientContract.TABLE_NAME + "." + ClientContract.CLIENT_ID + " = " + MessageContract.TABLE_NAME + "." + MessageContract.SENDER_ID +
@@ -200,13 +200,14 @@ public class MessageDbProvider extends ContentProvider {
                     return cursor;
                 } else if (projection == null && selectionArgs == null) { // query all messages to sync
                     Log.i(TAG, "Query all messages to sync");
+                    // Return _id, text, timestamp, seqnum, clientName, sender_id, chatroom, chatroom_fk
                     query = "SELECT " + MessageContract.TABLE_NAME + "." + MessageContract.MESSAGE_ID + " AS " + MessageContract.MESSAGE_ID + ", " +
                             MessageContract.TABLE_NAME + "." + MessageContract.MESSAGE_TEXT + " AS " + MessageContract.MESSAGE_TEXT + ", " +
                             MessageContract.TABLE_NAME + "." + MessageContract.TIMESTAMP + " AS " + MessageContract.TIMESTAMP + ", " +
                             MessageContract.TABLE_NAME + "." + MessageContract.SEQNUM + " AS " + MessageContract.SEQNUM + ", " +
                             ClientContract.TABLE_NAME + "." + ClientContract.NAME + " AS " + ClientContract.NAME + ", " +
-                            MessageContract.TABLE_NAME + "." + MessageContract.SENDER_ID + " AS " + MessageContract.SENDER_ID +
-                            ChatroomContract.TABLE_NAME + "." + ChatroomContract.NAME + " AS " + ClientContract.NAME + ", " +
+                            MessageContract.TABLE_NAME + "." + MessageContract.SENDER_ID + " AS " + MessageContract.SENDER_ID + ", " +
+                            ChatroomContract.TABLE_NAME + "." + ChatroomContract.NAME + " AS " + ChatroomContract.NAME + ", " +
                             MessageContract.TABLE_NAME + "." + MessageContract.CHATROOM_FK + " AS " + MessageContract.CHATROOM_FK +
                             " FROM " + MessageContract.TABLE_NAME + " LEFT OUTER JOIN " + ClientContract.TABLE_NAME + " ON " +
                             ClientContract.TABLE_NAME + "." + ClientContract.CLIENT_ID + " = " + MessageContract.TABLE_NAME + "." + MessageContract.SENDER_ID +
@@ -227,8 +228,8 @@ public class MessageDbProvider extends ContentProvider {
                         MessageContract.TABLE_NAME + "." + MessageContract.TIMESTAMP + " AS " + MessageContract.TIMESTAMP + ", " +
                         MessageContract.TABLE_NAME + "." + MessageContract.SEQNUM + " AS " + MessageContract.SEQNUM + ", " +
                         ClientContract.TABLE_NAME + "." + ClientContract.NAME + " AS " + ClientContract.NAME + ", " +
-                        MessageContract.TABLE_NAME + "." + MessageContract.SENDER_ID + " AS " + MessageContract.SENDER_ID +
-                        ChatroomContract.TABLE_NAME + "." + ChatroomContract.NAME + " AS " + ClientContract.NAME + ", " +
+                        MessageContract.TABLE_NAME + "." + MessageContract.SENDER_ID + " AS " + MessageContract.SENDER_ID + ", " +
+                        ChatroomContract.TABLE_NAME + "." + ChatroomContract.NAME + " AS " + ChatroomContract.NAME + ", " +
                         MessageContract.TABLE_NAME + "." + MessageContract.CHATROOM_FK + " AS " + MessageContract.CHATROOM_FK +
                         " FROM " + MessageContract.TABLE_NAME + " LEFT OUTER JOIN " + ClientContract.TABLE_NAME + " ON " +
                         ClientContract.TABLE_NAME + "." + ClientContract.CLIENT_ID + " = " + MessageContract.TABLE_NAME + "." + MessageContract.SENDER_ID +
@@ -238,11 +239,17 @@ public class MessageDbProvider extends ContentProvider {
                         " ORDER BY " + MessageContract.TIMESTAMP + ";";
                 return database.rawQuery(query, new String[] {String.valueOf(MessageContract.getMessageId(uri))});
             case CLIENT_ALL_ROWS: // return all clients
-                Log.i(TAG, "Query all clients");
-                projection = new String[] {ClientContract.CLIENT_ID, ClientContract.NAME, ClientContract.UUID};
-                cursor = database.query(ClientContract.TABLE_NAME, projection, null, null, null, null, null);
-                cursor.setNotificationUri(getContext().getContentResolver(), uri);
-                return cursor;
+                if (selectionArgs == null) {
+                    Log.i(TAG, "Query all clients");
+                    projection = new String[]{ClientContract.CLIENT_ID, ClientContract.NAME, ClientContract.UUID};
+                    cursor = database.query(ClientContract.TABLE_NAME, projection, null, null, null, null, null);
+                    cursor.setNotificationUri(getContext().getContentResolver(), uri);
+                    return cursor;
+                } else {
+                    Log.i(TAG, "Query a client");
+                    projection = new String[]{ClientContract.CLIENT_ID, ClientContract.NAME, ClientContract.UUID};
+                    return database.query(ClientContract.TABLE_NAME, projection, selection, selectionArgs, null, null, null);
+                }
             case CLIENT_SINGLE_ROW: // return all messages from a client
                 if (projection == null) {
                     Log.i(TAG, "Query all messages from a client");
@@ -251,8 +258,8 @@ public class MessageDbProvider extends ContentProvider {
                             MessageContract.TABLE_NAME + "." + MessageContract.TIMESTAMP + " AS " + MessageContract.TIMESTAMP + ", " +
                             MessageContract.TABLE_NAME + "." + MessageContract.SEQNUM + " AS " + MessageContract.SEQNUM + ", " +
                             ClientContract.TABLE_NAME + "." + ClientContract.NAME + " AS " + ClientContract.NAME + ", " +
-                            MessageContract.TABLE_NAME + "." + MessageContract.SENDER_ID + " AS " + MessageContract.SENDER_ID +
-                            ChatroomContract.TABLE_NAME + "." + ChatroomContract.NAME + " AS " + ClientContract.NAME + ", " +
+                            MessageContract.TABLE_NAME + "." + MessageContract.SENDER_ID + " AS " + MessageContract.SENDER_ID + ", " +
+                            ChatroomContract.TABLE_NAME + "." + ChatroomContract.NAME + " AS " + ChatroomContract.NAME + ", " +
                             MessageContract.TABLE_NAME + "." + MessageContract.CHATROOM_FK + " AS " + MessageContract.CHATROOM_FK +
                             " FROM " + MessageContract.TABLE_NAME + " LEFT OUTER JOIN " + ClientContract.TABLE_NAME + " ON " +
                             ClientContract.TABLE_NAME + "." + ClientContract.CLIENT_ID + " = " + MessageContract.TABLE_NAME + "." + MessageContract.SENDER_ID +
@@ -270,11 +277,18 @@ public class MessageDbProvider extends ContentProvider {
                     return database.query(ClientContract.TABLE_NAME, projection, selection, selectionArgs, null, null, null);
                 }
             case CHATROOM_ALL_ROWS: // return all chatrooms
-                Log.i(TAG, "Query all chatrooms");
-                projection = new String[] {ChatroomContract.ID, ChatroomContract.NAME};
-                cursor = database.query(ChatroomContract.TABLE_NAME, projection, null, null, null, null, null);
-                cursor.setNotificationUri(getContext().getContentResolver(), uri);
-                return cursor;
+                if (selectionArgs == null) {
+                    Log.i(TAG, "Query all chatrooms");
+                    projection = new String[]{ChatroomContract.ID, ChatroomContract.NAME};
+                    cursor = database.query(ChatroomContract.TABLE_NAME, projection, null, null, null, null, null);
+                    cursor.setNotificationUri(getContext().getContentResolver(), uri);
+                    return cursor;
+                } else {
+                    Log.i(TAG, "Query a single chatroom");
+                    projection = new String[]{ChatroomContract.ID, ChatroomContract.NAME};
+                    cursor = database.query(ChatroomContract.TABLE_NAME, projection, selection, selectionArgs, null, null, null);
+                    return cursor;
+                }
             case CHATROOM_SINGLE_ROW: // return one single chatroom
                 Log.i(TAG, "Query a single chatroom");
                 projection = new String[] {ChatroomContract.ID, ChatroomContract.NAME};
