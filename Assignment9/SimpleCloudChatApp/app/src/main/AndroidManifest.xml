@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="edu.stevens.cs522.simplecloudchatapp" >
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:theme="@style/AppTheme" >
+        <activity
+            android:name=".Activities.ChatAppActivity"
+            android:label="@string/app_name" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <service
+            android:name=".Services.RequestService"
+            android:exported="false" >
+        </service>
+
+        <provider
+            android:name=".Providers.MessageDbProvider"
+            android:authorities="edu.stevens.cs522.simplecloudchatapp"
+            android:enabled="true"
+            android:exported="false" >
+        </provider>
+
+        <activity
+            android:name=".Activities.ClientsActivity"
+            android:label="@string/title_activity_clients"
+            android:parentActivityName=".Activities.ChatAppActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="edu.stevens.cs522.simplecloudchatapp.Activities.ChatAppActivity" />
+        </activity>
+        <activity
+            android:name=".Activities.MessagesActivity"
+            android:label="@string/title_activity_messages"
+            android:parentActivityName=".Activities.ClientsActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="edu.stevens.cs522.simplecloudchatapp.Activities.ClientsActivity" />
+        </activity>
+        <activity
+            android:name=".Activities.MainChatActivity"
+            android:label="@string/title_activity_main_chat"
+            android:parentActivityName=".Activities.ChatAppActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="edu.stevens.cs522.simplecloudchatapp.Activities.ChatAppActivity" />
+        </activity>
+    </application>
+
+</manifest>
