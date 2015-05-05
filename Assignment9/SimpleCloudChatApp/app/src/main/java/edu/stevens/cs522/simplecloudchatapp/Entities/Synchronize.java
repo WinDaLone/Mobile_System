@@ -12,10 +12,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.UUID;
 
 import edu.stevens.cs522.simplecloudchatapp.Contracts.ChatroomContract;
 import edu.stevens.cs522.simplecloudchatapp.Contracts.MessageContract;
@@ -30,13 +27,15 @@ public class Synchronize extends Request{
     public long seqNum;
     List<Message> messages;
 
-    public Synchronize(String host, int port, UUID registrationID, long clientID, long seqNum, List<Message> messages) {
+    public Synchronize(String host, int port, Client client, long seqNum, List<Message> messages) {
         this.host = host;
         this.port = port;
         this.seqNum = seqNum;
         this.messages = messages;
-        this.registrationID = registrationID;
-        this.clientID = clientID;
+        this.registrationID = client.uuid;
+        this.clientID = client.id;
+        this.latitude = client.latitude;
+        this.longitude = client.longitude;
     }
 
     @SuppressWarnings("unchecked")
@@ -49,6 +48,8 @@ public class Synchronize extends Request{
         this.seqNum = in.readLong();
         this.messages = new ArrayList<>();
         in.readTypedList(this.messages, Message.CREATOR);
+        this.latitude = in.readDouble();
+        this.longitude = in.readDouble();
     }
 
     public static final Creator<Synchronize> CREATOR = new Creator<Synchronize>() {
@@ -67,15 +68,6 @@ public class Synchronize extends Request{
     // See setJsonWriter
     public String getRequestEntity() throws IOException {
         return null;
-    }
-
-    @Override
-    // No header
-    public Map<String, String> getRequestHeaders() {
-        Map<String, String> stringMap = new HashMap<>();
-        stringMap.put("X-latitude", "40.7439905");
-        stringMap.put("X-longitude", "-74.0323626");
-        return stringMap;
     }
 
     @Override
@@ -106,6 +98,12 @@ public class Synchronize extends Request{
             writer.value(messages.get(i).chatroom);
             writer.name(MessageContract.TIMESTAMP);
             writer.value(messages.get(i).timestamp.getTime());
+
+            writer.name("X-latitude");
+            writer.value(messages.get(i).latitude);
+            writer.name("X-longitude");
+            writer.value(messages.get(i).longitude);
+
             writer.name(MessageContract.MESSAGE_TEXT);
             writer.value(messages.get(i).messageText);
             writer.endObject();
@@ -123,10 +121,12 @@ public class Synchronize extends Request{
         out.writeString(host);
         out.writeInt(port);
         ParcelUuid parcelUuid = new ParcelUuid(registrationID);
-        out.writeParcelable(parcelUuid, Request.UUIDFlag);
+        out.writeParcelable(parcelUuid, flags);
         out.writeLong(this.clientID);
         out.writeLong(seqNum);
         out.writeTypedList(messages);
+        out.writeDouble(latitude);
+        out.writeDouble(longitude);
     }
 
 }

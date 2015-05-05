@@ -3,6 +3,7 @@
     <string name="send_label">SEND</string>
     <string name="back_label">BACK</string>
     <string name="action_settings">Register</string>
+    <string name="unregister">Unregister</string>
     <string name="message_edit_text">Type your message here.</string>
 
     <string name="title_activity_setting">Yunfeng Wei\'s CloudChatApp</string>

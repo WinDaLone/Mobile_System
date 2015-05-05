@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -19,8 +20,9 @@ public abstract class Request implements Parcelable {
     public static final String TAG = Request.class.getCanonicalName();
     protected static final String encoding = "UTF-8";
     public long clientID;
-    public static final int UUIDFlag = 1;
     public UUID registrationID; // sanity check
+    public double latitude;
+    public double longitude;
     public URL getRequestUrl() {
         Uri uri = this.getRequestUri();
         URL url = null;
@@ -33,7 +35,12 @@ public abstract class Request implements Parcelable {
         return url;
     }
     // App-specific HTTP requst headers
-    public abstract Map<String, String> getRequestHeaders();
+    public Map<String, String> getRequestHeaders() {
+        Map<String, String> stringMap = new HashMap<>();
+        stringMap.put("X-latitude", String.valueOf(latitude));
+        stringMap.put("X-longitude", String.valueOf(longitude));
+        return stringMap;
+    };
     // Chat service URI with parameters e.g. query string parameters
     public abstract Uri getRequestUri();
     // JSON body (if not null) for request data not passed in headers

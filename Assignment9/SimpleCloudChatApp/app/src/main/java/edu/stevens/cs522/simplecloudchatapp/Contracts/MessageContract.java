@@ -18,6 +18,8 @@ public class MessageContract {
     public static final String TIMESTAMP = "timestamp";
     public static final String SEQNUM = "seqnum";
     public static final String SENDER_ID = "senderID"; // SENDER_FK
+    public static final String LONGITUDE = "longitude";
+    public static final String LATITUDE = "latitude";
 
     public static final String TABLE_NAME = "Messages";
     public static final String CONTENT = "Message";
@@ -82,5 +84,20 @@ public class MessageContract {
 
     public static void setSenderId(ContentValues values, long id) {
         values.put(SENDER_ID, id);
+    }
+
+    public static double getLongitude(Cursor cursor) {
+        return Double.parseDouble(cursor.getString(cursor.getColumnIndexOrThrow(LONGITUDE)));
+    }
+    public static void setLongitude(ContentValues values, double longitude) {
+        values.put(LONGITUDE, String.valueOf(longitude));
+    }
+
+    public static double getLatitude(Cursor cursor) {
+        return Double.parseDouble(cursor.getString(cursor.getColumnIndexOrThrow(LATITUDE)));
+    }
+
+    public static void setLatitude(ContentValues values, double latitude) {
+        values.put(LATITUDE, String.valueOf(latitude));
     }
 }

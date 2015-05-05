@@ -1,10 +1,12 @@
 package edu.stevens.cs522.simplecloudchatapp.Managers;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.net.Uri;
 
 import edu.stevens.cs522.simplecloudchatapp.Callbacks.IEntityCreator;
 import edu.stevens.cs522.simplecloudchatapp.Callbacks.IQueryListener;
+import edu.stevens.cs522.simplecloudchatapp.Contracts.ClientContract;
 import edu.stevens.cs522.simplecloudchatapp.Entities.Client;
 
 /**
@@ -16,5 +18,14 @@ public class ClientManager extends Manager<Client> {
     }
     public void QueryAsync(Uri uri, IQueryListener<Client> listener) {
         this.executeQuery(uri, listener);
+    }
+
+    public void UpdateGPSAsync(Client client) {
+        ContentValues values = new ContentValues();
+        values.put(ClientContract.LATITUDE, client.latitude);
+        values.put(ClientContract.LONGITUDE, client.longitude);
+        values.put(ClientContract.ADDRESS, client.address);
+        getAsyncResolver().updateAsync(ClientContract.CONTENT_URI(String.valueOf(client.id)), values, null, null);
+        getSyncResolver().notifyChange(ClientContract.CONTENT_URI, null);
     }
 }

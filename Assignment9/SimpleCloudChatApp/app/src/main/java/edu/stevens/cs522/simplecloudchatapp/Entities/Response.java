@@ -182,7 +182,6 @@ public abstract class Response implements Parcelable {
             reader.beginObject();
             matchName("id", reader);
             this.id = reader.nextInt();
-
             reader.endObject();
         }
 
@@ -213,7 +212,7 @@ public abstract class Response implements Parcelable {
 
     public static class SyncResponse extends Response implements Parcelable {
         public ArrayList<ContentValues> messageValues = null;
-        public ArrayList<String> client = null;
+        public ArrayList<ContentValues> clientValues = null;
         public SyncResponse(HttpURLConnection connection, JsonReader reader) throws IOException {
             super(connection);
             parseResponse(reader);
@@ -221,26 +220,38 @@ public abstract class Response implements Parcelable {
 
         @Override
         public boolean isValid() {
-            return client != null;
+            return clientValues != null;
         }
 
         @Override
         protected void parseResponse(JsonReader reader) throws IOException {
             messageValues = new ArrayList<>();
-            client = new ArrayList<>();
+            clientValues = new ArrayList<>();
             reader.beginObject();
             matchName("clients", reader);
             reader.beginArray();
             while (reader.peek() != JsonToken.END_ARRAY) {
                 reader.beginObject();
+                String clientName = null;
+                double clientLatitude = 0;
+                double clientLongitude = 0;
                 while (reader.peek() != JsonToken.END_OBJECT) {
                     String label = reader.nextName();
                     if (label.equals("sender")) {
-                        client.add(reader.nextString());
+                        clientName = reader.nextString();
+                    } else if (label.equals("latitude")) {
+                        clientLatitude = reader.nextDouble();
+                    } else if (label.equals("longitude")) {
+                        clientLongitude = reader.nextDouble();
                     } else {
                         reader.skipValue();
                     }
                 }
+                ContentValues values = new ContentValues();
+                values.put(ClientContract.NAME, clientName);
+                values.put(ClientContract.LATITUDE, clientLatitude);
+                values.put(ClientContract.LONGITUDE, clientLongitude);
+                clientValues.add(values);
                 reader.endObject();
             }
             reader.endArray();
@@ -288,14 +299,14 @@ public abstract class Response implements Parcelable {
             out.writeString(ResponseType.SYNCHRONIZE.name());
             super.writeToParcel(out, flags);
             out.writeTypedList(messageValues);
-            out.writeStringList(client);
+            out.writeTypedList(clientValues);
         }
 
         @SuppressWarnings("unchecked")
         public SyncResponse(Parcel in) {
             super(in);
             this.messageValues = in.readArrayList(ContentValues.class.getClassLoader());
-            in.readStringList(this.client);
+            this.clientValues = in.readArrayList(ContentValues.class.getClassLoader());
         }
 
         public static final Creator<SyncResponse> CREATOR = new Creator<SyncResponse>() {

@@ -13,6 +13,9 @@ public class ClientContract {
     public static final String CLIENT_ID = "_id";
     public static final String NAME = "name";
     public static final String UUID = "uuid";
+    public static final String LONGITUDE = "longitude";
+    public static final String LATITUDE = "latitude";
+    public static final String ADDRESS = "address";
 
     public static final String TABLE_NAME = "Clients";
     public static final String CONTENT = "Client";
@@ -61,5 +64,29 @@ public class ClientContract {
         } else {
             values.put(UUID, "");
         }
+    }
+
+    public static double getLongitude(Cursor cursor) {
+        return Double.parseDouble(cursor.getString(cursor.getColumnIndexOrThrow(LONGITUDE)));
+    }
+
+    public static void setLongitude(ContentValues values, double longitude) {
+        values.put(LONGITUDE, String.valueOf(longitude));
+    }
+
+    public static double getLatitude(Cursor cursor) {
+        return Double.parseDouble(cursor.getString(cursor.getColumnIndexOrThrow(LATITUDE)));
+    }
+
+    public static void setLatitude(ContentValues values, double latitude) {
+        values.put(LATITUDE, String.valueOf(latitude));
+    }
+
+    public static String getAddress(Cursor cursor) {
+        return cursor.getString(cursor.getColumnIndexOrThrow(ADDRESS));
+    }
+
+    public static void setAddress(ContentValues values, String address) {
+        values.put(ADDRESS, address);
     }
 }

@@ -10,8 +10,6 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URLEncoder;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -36,20 +34,14 @@ public class Register extends Request {
     };
 
 
-    public Register(String host, int port, String clientName, long clientId, UUID registrationID) {
+    public Register(String host, int port, String name, UUID uuid, double latitude, double longitude) {
         this.host = host;
         this.port = port;
-        this.clientName = clientName;
-        this.clientID = clientId;
-        this.registrationID = registrationID;
-    }
-
-    public Register(String host, int port, String clientName, UUID registrationID) {
-        this.host = host;
-        this.port = port;
-        this.clientName = clientName;
-        this.clientID = -1;
-        this.registrationID = registrationID;
+        this.clientName = name;
+        this.clientID = 0;
+        this.registrationID = uuid;
+        this.latitude = latitude;
+        this.longitude = longitude;
     }
 
     public Register(Parcel parcel) {
@@ -59,14 +51,10 @@ public class Register extends Request {
         this.clientID = parcel.readLong();
         ParcelUuid parcelUuid = parcel.readParcelable(ParcelUuid.class.getClassLoader());
         this.registrationID = parcelUuid.getUuid();
+        this.latitude = parcel.readDouble();
+        this.longitude = parcel.readDouble();
     }
-    @Override
-    public Map<String, String> getRequestHeaders() {
-        Map<String, String> stringMap = new HashMap<>();
-        stringMap.put("X-latitude", "40.7439905");
-        stringMap.put("X-longitude", "-74.0323626");
-        return stringMap;
-    }
+
 
     @Override
     public Uri getRequestUri() {
@@ -103,6 +91,8 @@ public class Register extends Request {
         parcel.writeString(this.clientName);
         parcel.writeLong(this.clientID);
         ParcelUuid parcelUuid = new ParcelUuid(registrationID);
-        parcel.writeParcelable(parcelUuid, Request.UUIDFlag);
+        parcel.writeParcelable(parcelUuid, flags);
+        parcel.writeDouble(latitude);
+        parcel.writeDouble(longitude);
     }
 }

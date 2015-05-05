@@ -14,6 +14,7 @@ import android.widget.EditText;
 import java.sql.Timestamp;
 import java.util.Date;
 
+import edu.stevens.cs522.simplecloudchatapp.Activities.ChatAppActivity;
 import edu.stevens.cs522.simplecloudchatapp.Callbacks.IRegisterListener;
 import edu.stevens.cs522.simplecloudchatapp.Entities.Chatroom;
 import edu.stevens.cs522.simplecloudchatapp.Entities.Message;
@@ -78,7 +79,7 @@ public class SendDialogFragment extends DialogFragment {
             @Override
             public void onClick(View v) {
                 String text = messageText.getText().toString();
-                Message message = new Message(text, new Timestamp(new Date().getTime()));
+                Message message = new Message(text, new Timestamp(new Date().getTime()), ChatAppActivity.client.longitude, ChatAppActivity.client.latitude);
                 Chatroom chatroom = getArguments().getParcelable(TAG);
                 listener.send(message, chatroom);
                 SendDialogFragment.this.getDialog().cancel();

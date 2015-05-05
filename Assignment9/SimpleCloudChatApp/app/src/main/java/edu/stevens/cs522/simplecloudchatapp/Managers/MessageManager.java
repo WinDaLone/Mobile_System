@@ -280,6 +280,12 @@ public class MessageManager extends Manager<Message> {
         this.executeSimpleQuery(uri, listener);
     }
 
+    public void DeleteAllAsync() {
+        getAsyncResolver().deleteAsync(MessageContract.CONTENT_URI, null, null);
+        getAsyncResolver().deleteAsync(ChatroomContract.CONTENT_URI, null, null);
+        getAsyncResolver().deleteAsync(ClientContract.CONTENT_URI, null, null);
+    }
+
     private void SynchronizeMessage() {
         Log.i(TAG, "Start synchronize messages");
         this.QueryDetail(MessageContract.CONTENT_URI, new ISimpleQueryListener<Message>() {
@@ -298,7 +304,7 @@ public class MessageManager extends Manager<Message> {
                             seqnum = tempNum;
                         }
                     }
-                    Synchronize request = new Synchronize(ChatAppActivity.host, ChatAppActivity.port, ChatAppActivity.registrationID, ChatAppActivity.clientID, seqnum, messages);
+                    Synchronize request = new Synchronize(ChatAppActivity.host, ChatAppActivity.port, ChatAppActivity.client, seqnum, messages);
                     AckReceiverWrapper.IReceiver receiver = new AckReceiverWrapper.IReceiver() {
                         @Override
                         public void onReceiveResult(int resultCode, Bundle resultData) {

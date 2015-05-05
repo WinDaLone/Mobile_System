@@ -20,6 +20,8 @@ public class Message implements Parcelable{
     public Timestamp timestamp;
     public long seqnum;
     public long senderID;
+    public double longitude;
+    public double latitude;
 
 
     public static final Creator<Message> CREATOR = new Creator<Message>() {
@@ -42,9 +44,11 @@ public class Message implements Parcelable{
         this.timestamp = null;
         this.seqnum = 0;
         this.senderID = 0;
+        this.longitude = 0;
+        this.latitude = 0;
     }
 
-    public Message(String messageText, Timestamp timestamp) {
+    public Message(String messageText, Timestamp timestamp, double longitude, double latitude) {
         this.chatroom_fk = 0;
         this.chatroom = "";
         this.messageID = 0;
@@ -52,6 +56,8 @@ public class Message implements Parcelable{
         this.timestamp = timestamp;
         this.seqnum = 0;
         this.senderID = 0;
+        this.longitude = longitude;
+        this.latitude = latitude;
     }
 
     public Message(Parcel parcel) {
@@ -62,6 +68,8 @@ public class Message implements Parcelable{
         this.timestamp = new Timestamp(parcel.readLong());
         this.seqnum = parcel.readLong();
         this.senderID = parcel.readLong();
+        this.longitude = parcel.readDouble();
+        this.latitude = parcel.readDouble();
     }
 
     public Message(Cursor cursor) {
@@ -72,6 +80,8 @@ public class Message implements Parcelable{
         this.timestamp = MessageContract.getTimestamp(cursor);
         this.seqnum = MessageContract.getSeqnum(cursor);
         this.senderID = MessageContract.getSenderId(cursor);
+        this.longitude = MessageContract.getLongitude(cursor);
+        this.latitude = MessageContract.getLatitude(cursor);
     }
 
     public void writeToProvider(ContentValues values, long senderID, long chatroom_fk) {
@@ -82,6 +92,8 @@ public class Message implements Parcelable{
         MessageContract.setSeqnum(values, seqnum);
         this.senderID = senderID;
         MessageContract.setSenderId(values, senderID);
+        MessageContract.setLongitude(values, longitude);
+        MessageContract.setLatitude(values, latitude);
     }
 
     @Override
@@ -98,5 +110,7 @@ public class Message implements Parcelable{
         parcel.writeLong(timestamp.getTime());
         parcel.writeLong(seqnum);
         parcel.writeLong(senderID);
+        parcel.writeDouble(longitude);
+        parcel.writeDouble(latitude);
     }
 }

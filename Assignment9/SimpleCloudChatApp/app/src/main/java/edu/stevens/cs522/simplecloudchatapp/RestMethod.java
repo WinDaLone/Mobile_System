@@ -15,11 +15,11 @@ import java.net.URL;
 import java.util.Map;
 
 import edu.stevens.cs522.simplecloudchatapp.Callbacks.IStreamingOutput;
-import edu.stevens.cs522.simplecloudchatapp.Entities.PostMessage;
 import edu.stevens.cs522.simplecloudchatapp.Entities.Register;
 import edu.stevens.cs522.simplecloudchatapp.Entities.Request;
 import edu.stevens.cs522.simplecloudchatapp.Entities.Response;
 import edu.stevens.cs522.simplecloudchatapp.Entities.Synchronize;
+import edu.stevens.cs522.simplecloudchatapp.Entities.Unregister;
 
 /**
  * Created by wyf920621 on 3/13/15.
@@ -68,37 +68,41 @@ public class RestMethod {
         return null;
     }
 
-    public Response perform(PostMessage request) {
+    public boolean perform(Unregister request) {
         URL url = request.getRequestUrl();
         if (isOnline()) {
             try {
+                // prepare request
                 connection = (HttpURLConnection)url.openConnection();
                 connection.setRequestProperty("USER_AGENT", TAG);
-                connection.setRequestMethod("POST");
+                connection.setRequestMethod("DELETE");
                 connection.setUseCaches(false);
                 connection.setRequestProperty("CONNECTION", "Keep-Alive");
                 connection.setConnectTimeout(15000);
                 connection.setReadTimeout(10000);
 
                 Map<String, String> headers = request.getRequestHeaders();
-                for (Map.Entry<String, String> header : headers.entrySet()) {
+                for(Map.Entry<String, String> header : headers.entrySet()) {
                     connection.addRequestProperty(header.getKey(), header.getValue());
                 }
-                connection.setDoInput(true);
-                // execute
+
+                // execute request
                 outputRequestEntity(request);
+                connection.setDoInput(true);
                 connection.connect();
                 throwErrors(connection);
-                JsonReader reader = new JsonReader(new BufferedReader(new InputStreamReader(connection.getInputStream())));
-                Response response = request.getResponse(connection, reader);
-                reader.close();
-                connection.disconnect();
-                return response;
+                if (connection.getResponseCode() < 200 || connection.getResponseCode() >= 300) {
+                    connection.disconnect();
+                    return false;
+                } else {
+                    connection.disconnect();
+                    return true;
+                }
             } catch (IOException e) {
                 Log.e(TAG, e.getMessage());
             }
         }
-        return null;
+        return false;
     }
 
     public static class StreamingResponse {

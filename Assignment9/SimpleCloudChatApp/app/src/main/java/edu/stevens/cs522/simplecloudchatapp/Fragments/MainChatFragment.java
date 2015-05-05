@@ -58,8 +58,8 @@ public class MainChatFragment extends Fragment {
         backButton = (Button)rootView.findViewById(R.id.back_button);
         titleView = (TextView)rootView.findViewById(R.id.main_chatroom_title);
 
-        String[] from = new String[] {MessageContract.MESSAGE_TEXT, ClientContract.NAME};
-        int[] to = new int[] {R.id.message_row, R.id.sender_row};
+        String[] from = new String[] {MessageContract.MESSAGE_TEXT, ClientContract.NAME, MessageContract.LATITUDE, MessageContract.LONGITUDE};
+        int[] to = new int[] {R.id.message_row, R.id.sender_row, R.id.latitude_row, R.id.longitude_row};
         cursorAdapter = new SimpleCursorAdapter(getActivity(), R.layout.message_row, null, from, to, 0);
 
         messageList.setAdapter(cursorAdapter);

@@ -32,6 +32,7 @@ public class MessagesFragment extends Fragment {
     SimpleCursorAdapter adapter;
     ListView listView;
     TextView nameView;
+    TextView addressView;
     public MessagesFragment() {
         // Required empty public constructor
     }
@@ -52,7 +53,9 @@ public class MessagesFragment extends Fragment {
         MESSAGES_FRAGMENT_LOADER_ID = (int)client.id + 10;
 
         nameView = (TextView)view.findViewById(R.id.messages_client_name);
-        nameView.setText("Name: " + client.name);
+        nameView.setText(client.name);
+        addressView = (TextView)view.findViewById(R.id.messages_client_address);
+        addressView.setText(client.address);
         listView = (ListView)view.findViewById(R.id.messages_list);
         messageManager = new MessageManager(getActivity(), new IEntityCreator<Message>() {
             @Override

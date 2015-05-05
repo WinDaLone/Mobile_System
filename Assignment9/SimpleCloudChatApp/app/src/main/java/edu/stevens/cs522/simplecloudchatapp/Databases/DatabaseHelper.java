@@ -21,6 +21,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     MessageContract.SEQNUM + " INTEGER NOT NULL, " +
                     MessageContract.SENDER_ID + " INTEGER NOT NULL, " +
                     MessageContract.CHATROOM_FK + " INTEGER NOT NULL, " +
+                    MessageContract.LATITUDE + " TEXT NOT NULL, " +
+                    MessageContract.LONGITUDE + " TEXT NOT NULL, " +
                     "FOREIGN KEY (" + MessageContract.SENDER_ID + ") REFERENCES " + ClientContract.TABLE_NAME +
                     "(" + ClientContract.CLIENT_ID + ") ON DELETE CASCADE, " +
                     "FOREIGN KEY (" + MessageContract.CHATROOM_FK + ") REFERENCES " + ChatroomContract.TABLE_NAME +
@@ -28,7 +30,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String CLIENT_TABLE_CREATE =
             "CREATE TABLE " + ClientContract.TABLE_NAME + " ( " + ClientContract.CLIENT_ID + " INTEGER PRIMARY KEY, " +
-                    ClientContract.NAME + " TEXT NOT NULL, " + ClientContract.UUID + " TEXT );";
+                    ClientContract.NAME + " TEXT NOT NULL, " +
+                    ClientContract.LATITUDE + " TEXT NOT NULL, " +
+                    ClientContract.LONGITUDE + " TEXT NOT NULL, " +
+                    ClientContract.ADDRESS + " TEXT NOT NULL, " +
+                    ClientContract.UUID + " TEXT );";
 
     private static final String CHATROOM_TABLE_CREATE =
             "CREATE TABLE " + ChatroomContract.TABLE_NAME + " ( " + ChatroomContract.ID + " INTEGER PRIMARY KEY, " +

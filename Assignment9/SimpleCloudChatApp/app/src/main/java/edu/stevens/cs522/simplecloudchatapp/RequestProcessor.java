@@ -12,10 +12,10 @@ import java.net.HttpURLConnection;
 
 import edu.stevens.cs522.simplecloudchatapp.Callbacks.IContinue;
 import edu.stevens.cs522.simplecloudchatapp.Callbacks.IStreamingOutput;
-import edu.stevens.cs522.simplecloudchatapp.Entities.PostMessage;
 import edu.stevens.cs522.simplecloudchatapp.Entities.Register;
 import edu.stevens.cs522.simplecloudchatapp.Entities.Response;
 import edu.stevens.cs522.simplecloudchatapp.Entities.Synchronize;
+import edu.stevens.cs522.simplecloudchatapp.Entities.Unregister;
 
 /**
  * Created by wyf920621 on 3/13/15.
@@ -33,6 +33,15 @@ public class RequestProcessor {
         } else {
             Log.e(TAG, "No Response");
             iContinue.kontinue(null);
+        }
+    }
+
+    public void perform(Unregister unregister, IContinue<Boolean> iContinue) {
+        boolean isSuccess = restMethod.perform(unregister);
+        if (isSuccess) {
+            iContinue.kontinue(true);
+        } else {
+            iContinue.kontinue(false);
         }
     }
 
@@ -54,22 +63,13 @@ public class RequestProcessor {
             if (response != null) {
                 iContinue.kontinue(response);
             } else {
-                iContinue.kontinue(response);
+                iContinue.kontinue(null);
                 Log.e(TAG, "No Response");
             }
             streamingResponse.connection.disconnect();
         } else {
             iContinue.kontinue(null);
             Log.e(TAG, "No streamingResponse");
-        }
-    }
-
-    public void perform(PostMessage postMessage, IContinue<Response> iContinue) {
-        Response response = restMethod.perform(postMessage);
-        if (response != null) {
-            iContinue.kontinue(response);
-        } else {
-            Log.e(TAG, "No Response");
         }
     }
 }
